@@ -21,7 +21,7 @@ import { Form, Button, Container } from 'react-bootstrap';
     
         let payload = { ...projectData };
         if (!payload.CandidateIds || payload.CandidateIds.length === 0) {
-        delete payload.CandidateIds; // Удаляем поле, если оно пустое или null
+        delete payload.CandidateIds; // delete field if it is empty or null
         }
     
         axios.post('https://localhost:7047/api/projects', payload)

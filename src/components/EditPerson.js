@@ -11,8 +11,9 @@ const EditPerson = ({ personId, onPersonUpdated }) => {
     divisionManager: '',
     resourceManager: '',
     availableFrom: '',
+    techStack: '',
     comments: '',
-    projectCandidates: [], // установите значение по умолчанию как пустой массив
+    projectCandidates: [],
   });
 
   useEffect(() => {
@@ -20,7 +21,7 @@ const EditPerson = ({ personId, onPersonUpdated }) => {
           .then(response => {
               const data = {
                   ...response.data,
-                  projectCandidates: response.data.projectCandidates || [], // обработка null
+                  projectCandidates: response.data.projectCandidates || [],
               };
               setPersonData(data);
           })
@@ -38,7 +39,7 @@ const EditPerson = ({ personId, onPersonUpdated }) => {
     event.preventDefault();
     axios.put(`https://localhost:7047/api/people/${personId}`, {
       ...personData,
-      ProjectCandidateIds: personData.projectCandidates.map(pc => pc.id), // Предполагая, что у каждого projectCandidate есть id
+      ProjectCandidateIds: personData.projectCandidates.map(pc => pc.id),
     })
       .then(response => {
         onPersonUpdated(response.data);
@@ -80,6 +81,11 @@ const EditPerson = ({ personId, onPersonUpdated }) => {
             <Form.Group controlId="availableFrom">
             <Form.Label>Available From</Form.Label>
             <Form.Control type="date" name="availableFrom" value={personData.availableFrom} onChange={handleInputChange} />
+            </Form.Group>
+
+            <Form.Group controlId="techStack">
+              <Form.Label>Tech Stack</Form.Label>
+              <Form.Control type="text" name="techStack" value={personData.techStack} onChange={handleInputChange} />
             </Form.Group>
 
             <Form.Group controlId="comments">

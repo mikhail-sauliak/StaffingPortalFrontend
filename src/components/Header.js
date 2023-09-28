@@ -11,9 +11,9 @@ const Header = () => {
         expand="lg" 
         style={{ 
           fontSize: '16px', 
-          zIndex: 1000, // Устанавливаем z-index, чтобы Navbar был поверх других элементов
-          position: 'sticky', // Прикрепляем Navbar к верхней части страницы
-          top: 0 // Устанавливаем верхнее положение Navbar
+          zIndex: 1000,
+          position: 'sticky',
+          top: 0
         }}
       >
         <LinkContainer to="/">

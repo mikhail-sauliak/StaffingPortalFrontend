@@ -12,27 +12,26 @@ import { Form, Button, Container } from 'react-bootstrap';
         comments: ''
     });
 
-    const [candidates, setCandidates] = useState([]); // состояние для хранения кандидатов
+    const [candidates, setCandidates] = useState([]); // state to store candidates
     const [selectedCandidates, setSelectedCandidates] = useState([]);
 
     useEffect(() => {
-        // Загрузка данных проекта
         axios.get(`https://localhost:7047/api/projects/${projectId}`)
-        .then(response => {
-            setProjectData(response.data);
-        })
-        .catch(error => {
-            console.error('There was an error fetching project data!', error);
-        });
-
-        // Загрузка списка кандидатов
-        axios.get('https://localhost:7047/api/people') // Убедитесь, что URL корректен
-        .then(response => {
-            setCandidates(response.data);
-        })
-        .catch(error => {
-            console.error('There was an error fetching candidates data!', error);
-        });
+            .then(response => {
+                setProjectData(response.data);
+                setSelectedCandidates(response.data.candidates.map(c => c.id));
+            })
+            .catch(error => {
+                console.error('There was an error fetching project data!', error);
+            });
+    
+        axios.get('https://localhost:7047/api/people')
+            .then(response => {
+                setCandidates(response.data);
+            })
+            .catch(error => {
+                console.error('There was an error fetching candidates data!', error);
+            });
     }, [projectId]);
 
     const handleCandidateChange = (event) => {
@@ -45,21 +44,59 @@ import { Form, Button, Container } from 'react-bootstrap';
         setProjectData({ ...projectData, [name]: value });
     };
 
+    const handleToggleCandidate = (candidateId) => {
+        if (selectedCandidates.includes(candidateId)) {
+            setSelectedCandidates(selectedCandidates.filter(id => id !== candidateId));
+        } else {
+            setSelectedCandidates([...selectedCandidates, candidateId]);
+        }
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault();
-    
+        
         const updatedProjectData = {
-        ...projectData,
-        CandidateIds: selectedCandidates
+            ...projectData,
+            CandidateIds: selectedCandidates
         };
-    
+        
         axios.put(`https://localhost:7047/api/projects/${projectId}`, updatedProjectData)
-        .then(response => {
-            onProjectUpdated(response.data);
-        })
-        .catch(error => {
-            console.error('There was an error updating the project!', error);
+            .then(response => {
+                onProjectUpdated(response.data);
+            })
+            .catch(error => {
+                console.error('There was an error updating the project!', error);
+            });
+    };
+
+    const getCompatibilityStatus = (projectTechStack, candidateTechStack) => {
+        const projectStack = projectTechStack.split(',').map(s => s.trim().toLowerCase());
+        const candidateStack = candidateTechStack.split(',').map(s => s.trim().toLowerCase());
+    
+        const intersection = projectStack.filter(stack => candidateStack.includes(stack));
+    
+        if (intersection.length === projectStack.length) return 'green';
+        if (intersection.length > 0) return 'yellow';
+        return 'transparent';
+    };
+
+    const getClosestAvailableCandidateId = () => {
+        let closestDateDiff = Infinity; // init dates difference
+        let closestCandidateId = null; // init ID of the candidate
+        
+        const startDate = new Date(projectData.startDate);
+        
+        candidates.forEach(candidate => {
+            const availableFromDate = new Date(candidate.availableFrom);
+            const dateDiff = Math.abs(startDate - availableFromDate);
+            
+            if (dateDiff < closestDateDiff) {
+                closestDateDiff = dateDiff;
+                closestCandidateId = candidate.id;
+            }
         });
+        
+        return closestCandidateId;
     };
 
     return (
@@ -87,14 +124,35 @@ import { Form, Button, Container } from 'react-bootstrap';
                 </Form.Group>
 
                 <Form.Group controlId="candidate">
-                <Form.Label>Candidates</Form.Label>
-                <Form.Control as="select" multiple onChange={handleCandidateChange}>
-                    {candidates.map(candidate => (
-                    <option key={candidate.id} value={candidate.id}>
-                        {candidate.firstName} {candidate.lastName}
-                    </option>
-                    ))}
-                </Form.Control>
+                    <Form.Label>Candidates</Form.Label>
+                    <Form.Control 
+                        as="div" 
+                        style={{ maxHeight: '125px', overflowY: 'auto', resize: 'vertical', border: '1px solid #ced4da', borderRadius: '4px', padding: '5px' }}
+                    >
+                        {candidates.map(candidate => {
+                        const isClosestAvailable = candidate.id === getClosestAvailableCandidateId();
+                        const compatibilityStatus = getCompatibilityStatus(projectData.techStack, candidate.techStack);
+
+                        return (
+                            <div 
+                                key={candidate.id} 
+                                style={{ 
+                                    backgroundColor: selectedCandidates.includes(candidate.id) ? 'lightblue' : compatibilityStatus,
+                                    color: isClosestAvailable ? 'red' : 'black',
+                                    padding: '5px' 
+                                }}
+                            >
+                                <input 
+                                    type="checkbox" 
+                                    value={candidate.id}
+                                    checked={selectedCandidates.includes(candidate.id)}
+                                    onChange={() => handleToggleCandidate(candidate.id)}
+                                />
+                                {candidate.firstName} {candidate.lastName}
+                            </div>
+                        );
+                    })}
+                    </Form.Control>
                 </Form.Group>
 
                 <Form.Group controlId="comments">

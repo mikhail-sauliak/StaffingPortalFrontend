@@ -32,11 +32,11 @@ const PersonList = () => {
 
   const calculateAvailability = (availableFromDate) => {
     const currentDate = new Date();
-    const availableDate = parseISO(availableFromDate); // Предполагается, что availableFromDate в формате ISO 8601
+    const availableDate = parseISO(availableFromDate); // ISO 8601
     
     const months = differenceInMonths(availableDate, currentDate);
-    const weeks = differenceInWeeks(availableDate, currentDate) % 4; // 4 недели в месяце
-    const days = differenceInDays(availableDate, currentDate) % 7; // 7 дней в неделе
+    const weeks = differenceInWeeks(availableDate, currentDate) % 4; // 4 weeks in a month
+    const days = differenceInDays(availableDate, currentDate) % 7; // 7 days in a week
     
     return `${months} months ${weeks} weeks ${days} days`;
   };
@@ -90,6 +90,7 @@ const PersonList = () => {
                 <th>Division Manager</th>
                 <th>Resource Manager</th>
                 <th>Available From</th>
+                <th>Tech Stack</th>
                 <th>Availability</th>
                 <th>Comments</th>
                 <th>Actions</th>
@@ -104,6 +105,7 @@ const PersonList = () => {
                     <td>{person.divisionManager}</td>
                     <td>{person.resourceManager}</td>
                     <td>{person.availableFrom}</td>
+                    <td>{person.techStack}</td>                    
                     <td>{calculateAvailability(person.availableFrom)}</td>
                     <td>{person.comments}</td>
                     <td>
