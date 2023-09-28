@@ -22,7 +22,7 @@ import { format } from 'date-fns';
     useEffect(() => {
       axios.get('https://localhost:7047/api/projects')
         .then(response => {
-          console.log(response.data); // Проверьте, содержат ли проекты кандидатов
+          console.log(response.data); // check if project has candidates
           setProjects(response.data);
           setSidebarOpen(false);
         })
@@ -37,16 +37,16 @@ import { format } from 'date-fns';
     const indexOfLastProject = currentPage * projectsPerPage;
     const indexOfFirstProject = indexOfLastProject - projectsPerPage;
     const currentProjects = sortedProjects.slice(indexOfFirstProject, indexOfLastProject);
-    const [refresh, setRefresh] = useState(false); // Добавьте состояние для обновления списка
+    const [refresh, setRefresh] = useState(false); // state to refresh the list
 
     const handleProjectUpdated = (updatedProject) => {
       setProjects(projects.map(project => project.id === updatedProject.id ? updatedProject : project));
-      setRefresh(!refresh); // Обновите состояние для перезагрузки списка
+      setRefresh(!refresh); // refresh state
     };
 
     const handleProjectDeleted = (deletedProjectId) => {
       setProjects(projects.filter(project => project.id !== deletedProjectId));
-      setRefresh(!refresh); // Обновите состояние для перезагрузки списка
+      setRefresh(!refresh);
     };
 
     const handleEditClick = (project) => {
@@ -91,7 +91,7 @@ import { format } from 'date-fns';
                     <th>Tech Stack</th>
                     <th>Start Date</th>
                     <th>End Date</th>
-                    <th>Candidates</th> {/* Изменено на Candidates */}
+                    <th>Candidates</th> {/* changed to Candidates */}
                     <th>Comments</th>
                     <th>Actions</th>
                   </tr>
