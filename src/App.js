@@ -1,17 +1,23 @@
-import './App.css';
-import { Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
 import ProjectList from './components/ProjectList';
 import PersonList from './components/PersonList';
+import Header from './components/Header';
+import { Route, Routes } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
+    <div>
+      <div>
+        <Header />
+      </div>
+      <div>
         <Routes>
-          <Route path="/" element={<Home />} /> {/* Домашняя страница */}
-          <Route path="/projects" element={<ProjectList />} /> {/* Страница проектов */}
-          <Route path="/people" element={<PersonList />} /> {/* Страница людей */}
+          <Route path="/" element={<Home />} />
+          <Route path="/projects" element={<ProjectList />} />
+          <Route path="/people" element={<PersonList />} />
         </Routes>
+      </div>
     </div>
   );
 };
