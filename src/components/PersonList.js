@@ -86,10 +86,15 @@ const PersonList = () => {
               <tr>
                 <th>First Name</th>
                 <th>Last Name</th>
+                <th>Stream</th>
                 <th>Location</th>
                 <th>Division Manager</th>
                 <th>Resource Manager</th>
                 <th>Available From</th>
+                <th>TM Aware</th>
+                <th>Level</th>
+                <th>Assignment Exists in GCP</th>
+                <th>Planned Assignment</th>
                 <th>Tech Stack</th>
                 <th>Availability</th>
                 <th>Comments</th>
@@ -101,10 +106,21 @@ const PersonList = () => {
                 <tr key={person.id}>
                     <td>{person.firstName}</td>
                     <td>{person.lastName}</td>
+                    <td>{person.stream}</td>
                     <td>{person.location}</td>
                     <td>{person.divisionManager}</td>
                     <td>{person.resourceManager}</td>
                     <td>{person.availableFrom}</td>
+                    <td>{person.tmAware}</td>
+                    <td>{person.level}</td>
+                    <td>
+                        {person.assignmentExistsInGCP ? (
+                            <span style={{ color: 'green' }}>Yes</span>
+                        ) : (
+                            <span style={{ color: 'red' }}>No</span>
+                        )}
+                    </td>
+                    <td>{person.plannedAssignment}</td>
                     <td>{person.techStack}</td>                    
                     <td>{calculateAvailability(person.availableFrom)}</td>
                     <td>{person.comments}</td>
