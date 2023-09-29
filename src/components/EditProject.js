@@ -2,101 +2,82 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Form, Button, Container } from 'react-bootstrap';
 
-    const EditProject = ({ projectId, onProjectUpdated }) => {
+const EditProject = ({ projectId, onProjectUpdated }) => { 
     const [projectData, setProjectData] = useState({
         name: '',
         techStack: '',
         startDate: '',
         endDate: '',
-        candidate: '',
-        comments: ''
+        comments: '',
+        search: 'Draft',
+        signed: false,
+        positionSigned: '',
+        positionClosed: '',
+        location: '',
+        stream: '',
+        level: 'Intern',
+        priority: 'Low',
+        attachment: null,
+        candidateIds: [] // Initialize candidateIds as an empty array
     });
-
-    const [candidates, setCandidates] = useState([]); // state to store candidates
-    const [selectedCandidates, setSelectedCandidates] = useState([]);
 
     useEffect(() => {
         axios.get(`https://localhost:7047/api/projects/${projectId}`)
             .then(response => {
-                setProjectData(response.data);
-                setSelectedCandidates(response.data.candidates.map(c => c.id));
+                const data = response.data;
+                // Handle possibly null or undefined fields
+                data.comments = data.comments || '';
+                data.attachment = data.attachment || null;
+                data.candidateIds = data.candidateIds || [];
+                setProjectData(data);
             })
             .catch(error => {
                 console.error('There was an error fetching project data!', error);
             });
-    
-        axios.get('https://localhost:7047/api/people')
-            .then(response => {
-                setCandidates(response.data);
-            })
-            .catch(error => {
-                console.error('There was an error fetching candidates data!', error);
-            });
     }, [projectId]);
-
-    const handleCandidateChange = (event) => {
-        const selectedOptions = Array.from(event.target.selectedOptions, option => parseInt(option.value));
-        setSelectedCandidates(selectedOptions);
-    };
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setProjectData({ ...projectData, [name]: value });
     };
 
-    const handleToggleCandidate = (candidateId) => {
-        if (selectedCandidates.includes(candidateId)) {
-            setSelectedCandidates(selectedCandidates.filter(id => id !== candidateId));
-        } else {
-            setSelectedCandidates([...selectedCandidates, candidateId]);
-        }
+    const handleCheckboxChange = (event) => {
+        const { name, checked } = event.target;
+        setProjectData({ ...projectData, [name]: checked });
+    };
+
+    const handleFileChange = (event) => {
+        setProjectData({ ...projectData, attachment: event.target.files[0] });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
         
-        const updatedProjectData = {
-            ...projectData,
-            CandidateIds: selectedCandidates
-        };
-        
-        axios.put(`https://localhost:7047/api/projects/${projectId}`, updatedProjectData)
-            .then(response => {
-                onProjectUpdated(response.data);
-            })
-            .catch(error => {
-                console.error('There was an error updating the project!', error);
-            });
-    };
-
-    const getCompatibilityStatus = (projectTechStack, candidateTechStack) => {
-        const projectStack = projectTechStack.split(',').map(s => s.trim().toLowerCase());
-        const candidateStack = candidateTechStack.split(',').map(s => s.trim().toLowerCase());
-    
-        const intersection = projectStack.filter(stack => candidateStack.includes(stack));
-    
-        if (intersection.length === projectStack.length) return 'green';
-        if (intersection.length > 0) return 'yellow';
-        return 'transparent';
-    };
-
-    const getClosestAvailableCandidateId = () => {
-        let closestDateDiff = Infinity; // init dates difference
-        let closestCandidateId = null; // init ID of the candidate
-        
-        const startDate = new Date(projectData.startDate);
-        
-        candidates.forEach(candidate => {
-            const availableFromDate = new Date(candidate.availableFrom);
-            const dateDiff = Math.abs(startDate - availableFromDate);
-            
-            if (dateDiff < closestDateDiff) {
-                closestDateDiff = dateDiff;
-                closestCandidateId = candidate.id;
+        const formData = new FormData();
+        Object.keys(projectData).forEach(key => {
+            const value = projectData[key];
+            if (value != null && value !== '') { // Check for null or empty string
+                if (key === 'attachment') {
+                    formData.append(key, value);
+                } else if (key === 'candidateIds' && Array.isArray(value)) {
+                    value.forEach(id => formData.append('CandidateIds', id));
+                } else {
+                    formData.append(key, value);
+                }
             }
         });
-        
-        return closestCandidateId;
+
+        axios.put(`https://localhost:7047/api/projects/${projectId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data', // Set content type as multipart/form-data
+            },
+        })
+        .then(response => {
+            onProjectUpdated(response.data);
+        })
+        .catch(error => {
+            console.error('There was an error updating the project!', error);
+        });
     };
 
     return (
@@ -104,60 +85,93 @@ import { Form, Button, Container } from 'react-bootstrap';
             <h2>Edit Project</h2>
             <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="name">
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" name="name" value={projectData.name} onChange={handleInputChange} />
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control type="text" name="name" value={projectData.name} onChange={handleInputChange} />
                 </Form.Group>
 
                 <Form.Group controlId="techStack">
-                <Form.Label>Tech Stack</Form.Label>
-                <Form.Control type="text" name="techStack" value={projectData.techStack} onChange={handleInputChange} />
+                    <Form.Label>Tech Stack</Form.Label>
+                    <Form.Control type="text" name="techStack" value={projectData.techStack} onChange={handleInputChange} />
                 </Form.Group>
 
                 <Form.Group controlId="startDate">
-                <Form.Label>Start Date</Form.Label>
-                <Form.Control type="date" name="startDate" value={projectData.startDate} onChange={handleInputChange} />
+                    <Form.Label>Start Date</Form.Label>
+                    <Form.Control type="date" name="startDate" value={projectData.startDate} onChange={handleInputChange} />
                 </Form.Group>
 
                 <Form.Group controlId="endDate">
-                <Form.Label>End Date</Form.Label>
-                <Form.Control type="date" name="endDate" value={projectData.endDate} onChange={handleInputChange} />
-                </Form.Group>
-
-                <Form.Group controlId="candidate">
-                    <Form.Label>Candidates</Form.Label>
-                    <Form.Control 
-                        as="div" 
-                        style={{ maxHeight: '125px', overflowY: 'auto', resize: 'vertical', border: '1px solid #ced4da', borderRadius: '4px', padding: '5px' }}
-                    >
-                        {candidates.map(candidate => {
-                        const isClosestAvailable = candidate.id === getClosestAvailableCandidateId();
-                        const compatibilityStatus = getCompatibilityStatus(projectData.techStack, candidate.techStack);
-
-                        return (
-                            <div 
-                                key={candidate.id} 
-                                style={{ 
-                                    backgroundColor: selectedCandidates.includes(candidate.id) ? 'lightblue' : compatibilityStatus,
-                                    color: isClosestAvailable ? 'red' : 'black',
-                                    padding: '5px' 
-                                }}
-                            >
-                                <input 
-                                    type="checkbox" 
-                                    value={candidate.id}
-                                    checked={selectedCandidates.includes(candidate.id)}
-                                    onChange={() => handleToggleCandidate(candidate.id)}
-                                />
-                                {candidate.firstName} {candidate.lastName}
-                            </div>
-                        );
-                    })}
-                    </Form.Control>
+                    <Form.Label>End Date</Form.Label>
+                    <Form.Control type="date" name="endDate" value={projectData.endDate} onChange={handleInputChange} />
                 </Form.Group>
 
                 <Form.Group controlId="comments">
-                <Form.Label>Comments</Form.Label>
-                <Form.Control type="text" name="comments" value={projectData.comments} onChange={handleInputChange} />
+                    <Form.Label>Comments</Form.Label>
+                    <Form.Control type="text" name="comments" value={projectData.comments} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Form.Group controlId="search">
+                    <Form.Label>Search</Form.Label>
+                    <Form.Control as="select" name="search" value={projectData.search} onChange={handleInputChange}>
+                        <option value="Active">Active</option>
+                        <option value="Cold">Cold</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Active Internal">Active Internal</option>
+                    </Form.Control>
+                </Form.Group>
+
+                <Form.Group controlId="signed">
+                    <Form.Label>Signed</Form.Label>
+                    <Form.Check type="checkbox" name="signed" checked={projectData.signed} onChange={handleCheckboxChange} />
+                </Form.Group>
+
+                <Form.Group controlId="positionSigned">
+                    <Form.Label>Position Signed</Form.Label>
+                    <Form.Control type="datetime-local" name="positionSigned" value={projectData.positionSigned} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Form.Group controlId="positionClosed">
+                    <Form.Label>Position Closed</Form.Label>
+                    <Form.Control type="datetime-local" name="positionClosed" value={projectData.positionClosed} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Form.Group controlId="location">
+                    <Form.Label>Location</Form.Label>
+                    <Form.Control type="text" name="location" value={projectData.location} onChange={handleInputChange} />
+                </Form.Group>
+
+                <Form.Group controlId="stream">
+                    <Form.Label>Stream</Form.Label>
+                    <Form.Control as="select" name="stream" value={projectData.stream} onChange={handleInputChange}>
+                        <option value="">Select Stream</option>
+                        <option value="QA">QA</option>
+                        <option value="SDET">SDET</option>
+                    </Form.Control>
+                </Form.Group>
+
+                <Form.Group controlId="level">
+                    <Form.Label>Level</Form.Label>
+                    <Form.Control as="select" name="level" value={projectData.level} onChange={handleInputChange}>
+                        <option value="Intern">Intern</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Middle">Middle</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lead">Lead</option>
+                        <option value="Principal">Principal</option>
+                    </Form.Control>
+                </Form.Group>
+
+                <Form.Group controlId="priority">
+                    <Form.Label>Priority</Form.Label>
+                    <Form.Control as="select" name="priority" value={projectData.priority} onChange={handleInputChange}>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </Form.Control>
+                </Form.Group>
+
+                <Form.Group controlId="attachment">
+                    <Form.Label>Attachment</Form.Label>
+                    <Form.Control type="file" name="attachment" onChange={handleFileChange} />
                 </Form.Group>
 
                 <Button variant="primary" type="submit">Save Changes</Button>
