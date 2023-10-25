@@ -22,8 +22,6 @@ steps:
 
 - task: AzureStaticWebApp@0
   inputs:
-    app_location: '/'
-    app_build_command: 'npm build'
     output_location: 'build'
     skip_api_build: true
     production_branch: 'main'
