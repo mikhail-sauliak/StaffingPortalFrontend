@@ -30,7 +30,7 @@ const CreatePerson = ({ onPersonCreated }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    apiWithAuth.post('http://localhost:5297/api/people', personData)
+    apiWithAuth.post('api/people', personData)
       .then(response => {
         onPersonCreated(response.data);
         setPersonData({

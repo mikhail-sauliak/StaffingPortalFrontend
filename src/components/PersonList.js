@@ -22,7 +22,7 @@ const PersonList = () => {
   }, [refresh]);
 
   const fetchPeople = () => {
-    apiWithAuth.get('http://localhost:5297/api/people')
+    apiWithAuth.get('api/people')
       .then(response => {
         const peopleData = response.data;
         const updatedPeople = peopleData.map(person => {

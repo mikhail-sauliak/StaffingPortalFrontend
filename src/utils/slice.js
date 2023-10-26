@@ -41,7 +41,7 @@ export const fetchSalaryReviews = createAsyncThunk(
     'reviews/fetchReviews',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await apiWithAuth.get('http://localhost:5297/api/salaryreview');
+            const response = await apiWithAuth.get('api/salaryreview');
             return response.data;
         } catch (error) {
             return rejectWithValue('Failed to fetch reviews.');

@@ -11,7 +11,7 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
  
   useEffect(() => {
     setLoading(true);
-    apiWithAuth.get('http://localhost:5297/api/people')
+    apiWithAuth.get('api/people')
       .then(response => {
         setCandidates(response.data);
         console.log('Candidates Loaded:', response.data);
@@ -44,7 +44,7 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
       candidateIds: selectedCandidates.map(c => c.id),
     };
     
-    apiWithAuth.put(`http://localhost:5297/api/projects/${project.id}`, updatedProject)
+    apiWithAuth.put(`api/projects/${project.id}`, updatedProject)
       .then(response => {
         console.log('Project updated:', response.data);
         setShowModal(false);

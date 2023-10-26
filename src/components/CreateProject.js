@@ -53,7 +53,7 @@ const CreateProject = ({ onProjectCreated }) => {
             }
         });
 
-        apiWithAuth.post('http://localhost:5297/api/projects', formData, {
+        apiWithAuth.post('api/projects', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data', // Set content type as multipart/form-data
             },
