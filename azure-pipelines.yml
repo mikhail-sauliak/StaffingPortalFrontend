@@ -20,11 +20,13 @@ steps:
     npm run build
   displayName: 'npm install and build'
 
-- task: AzureRmWebAppDeployment@4
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'Azure subscription 1(e4861d0a-8abf-4732-9d14-53435d54dcf6)'
-    appType: 'webApp'
-    WebAppName: 'staffportalfront'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+- script: |
+    ls -la
+# - task: AzureRmWebAppDeployment@4
+#   inputs:
+#     ConnectionType: 'AzureRM'
+#     azureSubscription: 'Azure subscription 1(e4861d0a-8abf-4732-9d14-53435d54dcf6)'
+#     appType: 'webApp'
+#     WebAppName: 'staffportalfront'
+#     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
 
