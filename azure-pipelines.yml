@@ -25,11 +25,20 @@ steps:
 
 - script: |
     dir
-# - task: AzureRmWebAppDeployment@4
-#   inputs:
-#     ConnectionType: 'AzureRM'
-#     azureSubscription: 'Azure subscription 1(e4861d0a-8abf-4732-9d14-53435d54dcf6)'
-#     appType: 'webApp'
-#     WebAppName: 'staffportalfront'
-#     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/build'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Azure subscription 1(e4861d0a-8abf-4732-9d14-53435d54dcf6)'
+    appType: 'webApp'
+    WebAppName: 'staffportalfront'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip'
 
