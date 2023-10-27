@@ -44,7 +44,7 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
       candidateIds: selectedCandidates.map(c => c.id),
     };
     
-    apiWithAuth.put(`api/projects/${project.id}`, updatedProject)
+    apiWithAuth.put(`projects/${project.id}`, updatedProject)
       .then(response => {
         console.log('Project updated:', response.data);
         setShowModal(false);

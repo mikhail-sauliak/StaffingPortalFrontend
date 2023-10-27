@@ -18,7 +18,7 @@ const EditPerson = ({ personId, onPersonUpdated, divisionManagerName, talentMana
   });
 
   useEffect(() => {
-    apiWithAuth.get(`api/people/${personId}`)
+    apiWithAuth.get(`people/${personId}`)
           .then(response => {
               const data = {
                   ...response.data,
@@ -59,7 +59,7 @@ const EditPerson = ({ personId, onPersonUpdated, divisionManagerName, talentMana
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    apiWithAuth.put(`api/people/${personId}`, {
+    apiWithAuth.put(`people/${personId}`, {
       ...personData,
       ProjectCandidateIds: personData.projectCandidates.map(pc => pc.id),
     })

@@ -30,7 +30,7 @@ const CreatePerson = ({ onPersonCreated }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    apiWithAuth.post('api/people', personData)
+    apiWithAuth.post('people', personData)
       .then(response => {
         onPersonCreated(response.data);
         setPersonData({

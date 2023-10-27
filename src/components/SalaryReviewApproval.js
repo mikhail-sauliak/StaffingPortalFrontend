@@ -14,8 +14,8 @@ const SalaryReviewApproval = () => {
 
   const fetchRequests = async () => {
     try {
-        const response = await apiWithAuth.get('api/salaryreviewrequests');
-        const responsePeople = await apiWithAuth.get('api/people');
+        const response = await apiWithAuth.get('salaryreviewrequests');
+        const responsePeople = await apiWithAuth.get('people');
         const requestData = response.data;
         setRequests(requestData);
         setPeople(responsePeople.data);
@@ -63,7 +63,7 @@ const SalaryReviewApproval = () => {
         // ... other fields
       };
       await apiWithAuth.patch(
-        `api/salaryreviewrequests/${requestId}/updateFields`,
+        `salaryreviewrequests/${requestId}/updateFields`,
         payload
       );
       fetchRequests();  // Refresh the list after save
@@ -74,7 +74,7 @@ const SalaryReviewApproval = () => {
 
   const handleApprove = async (requestId) => {
     try {
-      await apiWithAuth.patch(`api/salaryreviewrequests/${requestId}/approve`, { Comments: 'Approved' });
+      await apiWithAuth.patch(`salaryreviewrequests/${requestId}/approve`, { Comments: 'Approved' });
       fetchRequests();  // Refresh the list after approval
     } catch (error) {
       console.error('Error approving the request:', error);
@@ -83,7 +83,7 @@ const SalaryReviewApproval = () => {
 
   const handleDecline = async (requestId) => {
     try {
-      await apiWithAuth.patch(`api/salaryreviewrequests/${requestId}/decline`, { managerComments: 'Declined' });
+      await apiWithAuth.patch(`salaryreviewrequests/${requestId}/decline`, { managerComments: 'Declined' });
       fetchRequests();  // Refresh the list after decline
     } catch (error) {
       console.error('Error declining the request:', error);
@@ -92,7 +92,7 @@ const SalaryReviewApproval = () => {
 
   const handleApproveByDM = async (requestId) => {
     try {
-      await apiWithAuth.patch(`api/salaryreviewrequests/${requestId}/approveByDM`);
+      await apiWithAuth.patch(`salaryreviewrequests/${requestId}/approveByDM`);
       fetchRequests();  // Refresh the list after approval by DM
     } catch (error) {
       console.error('Error approving by DM:', error);

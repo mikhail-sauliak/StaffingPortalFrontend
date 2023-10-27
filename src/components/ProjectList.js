@@ -21,7 +21,7 @@ const ProjectList = () => {
     const [sidebarContent, setSidebarContent] = useState(null);
 
     useEffect(() => {
-        apiWithAuth.get('api/projects')
+        apiWithAuth.get('projects')
             .then(response => {
                 setProjects(response.data);
                 setSidebarOpen(false);

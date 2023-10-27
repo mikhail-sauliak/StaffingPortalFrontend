@@ -23,7 +23,7 @@ const EditProject = ({ projectId, onProjectUpdated }) => {
     });
 
     useEffect(() => {
-        apiWithAuth.get(`api/projects/${projectId}`)
+        apiWithAuth.get(`projects/${projectId}`)
             .then(response => {
                 const data = response.data;
                 data.comments = data.comments || '';
@@ -67,7 +67,7 @@ const EditProject = ({ projectId, onProjectUpdated }) => {
             }
         });
 
-        apiWithAuth.put(`api/projects/${projectId}`, formData, {
+        apiWithAuth.put(`projects/${projectId}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data', // Set content type as multipart/form-data
             },

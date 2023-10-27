@@ -17,8 +17,8 @@ const SalaryReviewList = () => {
 
     const fetchReviews = async () => {
         try {
-            const responsePeople = await apiWithAuth.get('api/people');
-            const response = await apiWithAuth.get('api/salaryreview');
+            const responsePeople = await apiWithAuth.get('people');
+            const response = await apiWithAuth.get('salaryreview');
             setPeople(responsePeople.data);
             setReviews(response.data);
             
@@ -55,7 +55,7 @@ const SalaryReviewList = () => {
             contractType
         };
         try {
-            await apiWithAuth.post('api/salaryreviewrequests', data);
+            await apiWithAuth.post('salaryreviewrequests', data);
             alert('Review request sent successfully');
             setShowReviewModal(false);
             setRefreshData(!refreshData);

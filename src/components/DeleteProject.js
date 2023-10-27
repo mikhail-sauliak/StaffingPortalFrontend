@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap';
 
 const DeleteProject = ({ projectId, onProjectDeleted }) => {
   const handleDelete = () => {
-    apiWithAuth.delete(`api/projects/${projectId}`)
+    apiWithAuth.delete(`projects/${projectId}`)
       .then(response => {
         onProjectDeleted(projectId);
       })

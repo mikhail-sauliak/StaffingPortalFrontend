@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap';
 
 const DeletePerson = ({ personId, onPersonDeleted }) => {
   const handleDelete = () => {
-    apiWithAuth.delete(`api/people/${personId}`)
+    apiWithAuth.delete(`people/${personId}`)
       .then(() => {
         onPersonDeleted(personId);
       })

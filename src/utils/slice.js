@@ -5,7 +5,7 @@ export const loginAsync = createAsyncThunk(
     'auth/login',
     async (values, { dispatch, rejectWithValue }) => { 
         try {
-            const response = await apiWithoutAuth.post('/auth/login', values);
+            const response = await apiWithoutAuth.post('auth/login', values);
             localStorage.setItem('token', response.data.token);
             dispatch(redirectToHome());
             return response.data.token;
@@ -41,7 +41,7 @@ export const fetchSalaryReviews = createAsyncThunk(
     'reviews/fetchReviews',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await apiWithAuth.get('api/salaryreview');
+            const response = await apiWithAuth.get('salaryreview');
             return response.data;
         } catch (error) {
             return rejectWithValue('Failed to fetch reviews.');
