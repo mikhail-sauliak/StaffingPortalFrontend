@@ -23,8 +23,10 @@ const authSlice = createSlice({
             state.token = null;
         },
         resetRedirect(state) {
-            state.redirectToHome = false; 
-            state.shouldRedirectToLogin = false;
+            state.redirectToHome = false;
+        },
+        redirectToLogin(state) {
+            state.shouldRedirectToLogin = true;
         },
     },
     extraReducers: (builder) => {
@@ -35,7 +37,7 @@ const authSlice = createSlice({
     },
 });
 
-export const { resetRedirect } = authSlice.actions;
+export const { resetRedirect, redirectToLogin } = authSlice.actions;
 
 export const fetchSalaryReviews = createAsyncThunk(
     'reviews/fetchReviews',

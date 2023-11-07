@@ -56,6 +56,9 @@ const Header = () => {
                     <NavLink to="/salaryreviews" className="nav-link" activeClassName="active">
                         Salary Reviews
                     </NavLink>
+                    <NavLink to="/admin" className="nav-link" activeClassName="active">
+                        Admin Panel
+                    </NavLink>
                     <NavLink to="/changepassword" className="nav-link" activeClassName="active">
                         Change Password
                     </NavLink> 

@@ -11,7 +11,7 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
  
   useEffect(() => {
     setLoading(true);
-    apiWithAuth.get('api/people')
+    apiWithAuth.get('people')
       .then(response => {
         setCandidates(response.data);
         console.log('Candidates Loaded:', response.data);

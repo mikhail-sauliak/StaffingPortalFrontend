@@ -1,7 +1,7 @@
 // api.js
 import axios from 'axios';
 import store from '../store/index';
-import { resetRedirect } from './slice.js';
+import { redirectToLogin } from './slice.js';
 
 const token = localStorage.getItem('token');
 
@@ -33,7 +33,7 @@ apiWithAuth.interceptors.response.use(
     },
     (error) => {
         if (error.response && error.response.status === 401) {
-            store.dispatch(resetRedirect(true));
+            store.dispatch(redirectToLogin());
         }
         return Promise.reject(error);
     }

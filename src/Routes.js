@@ -7,6 +7,7 @@ import PersonList from './components/PersonList';
 import SalaryReviewList from './components/SalaryReviewList';
 import SalaryReviewRequests from './components/SalaryReviewApproval';
 import ChangePassword from './components/ChangePassword';
+import AdminPanel from './components/AdminPanel';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { resetRedirect } from './utils/slice';
@@ -40,12 +41,14 @@ const AppRoutes = () => {
           <Route path="/people" element={<PersonList />} />
           <Route path="/salaryreviews" element={<SalaryReviewList />} />
           <Route path="/salaryreviewrequests" element={<SalaryReviewRequests />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/changepassword" element={<ChangePassword />} />
         </React.Fragment>
       ) : (
         <React.Fragment>
           <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Login />} />
+          {/* <Route path="*" element={<Navigate to="/login" replace />} /> */}
         </React.Fragment>
       )}
     </Routes>
