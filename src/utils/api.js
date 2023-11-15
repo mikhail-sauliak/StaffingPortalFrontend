@@ -8,13 +8,13 @@ const token = localStorage.getItem('token');
 
 
 export const apiWithAuth = axios.create({
-    baseURL: 'http://localhost:5000/api/',
+    baseURL: 'https://staffportalbackend.azurewebsites.net/api/',
     headers: token ? { 'Authorization': `Bearer ${token}`,
                        'Cache-Control': 'no-cache', } : {}
 });
 
 export const apiWithoutAuth = axios.create({
-    baseURL: 'http://localhost:5000/api/'
+    baseURL: 'https://staffportalbackend.azurewebsites.net/api/'
 });
 
 apiWithAuth.interceptors.request.use(
