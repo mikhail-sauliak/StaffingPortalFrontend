@@ -1,3 +1,4 @@
+//slice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiWithoutAuth, apiWithAuth } from '../utils/api';
 
@@ -7,9 +8,11 @@ export const loginAsync = createAsyncThunk(
         try {
             const response = await apiWithoutAuth.post('auth/login', values);
             localStorage.setItem('token', response.data.token);
+            console.log('Login Async: Token saved to localStorage:', response.data.token);
             dispatch(redirectToHome());
             return response.data.token;
         } catch (error) {
+            console.error('Login Async Error:', error);
             return rejectWithValue('Failed to login. Please check your credentials.');
         }
     }
@@ -20,19 +23,35 @@ const authSlice = createSlice({
     initialState: { token: null, redirectToHome: false, shouldRedirectToLogin: false },
     reducers: {
         logout(state) {
+            console.log('Logout Action: Removing token');
             state.token = null;
+            state.redirectToHome = false;
+            state.shouldRedirectToLogin = true;
         },
         resetRedirect(state) {
             state.redirectToHome = false;
         },
+        redirectToHome(state) {
+            state.redirectToHome = true;
+        },
         redirectToLogin(state) {
             state.shouldRedirectToLogin = true;
+        },
+        setToken(state, action) {
+            state.token = action.payload;
+        },
+        updateToken(state, action) {
+            state.token = action.payload;
         },
     },
     extraReducers: (builder) => {
         builder.addCase(loginAsync.fulfilled, (state, action) => {
             state.token = action.payload;
             state.redirectToHome = true;
+            state.shouldRedirectToLogin = false;
+        })
+        .addCase(loginAsync.rejected, (state, action) => {
+            state.redirectToHome = false;
         });
     },
 });
@@ -67,5 +86,6 @@ export const redirectToHome = () => ({
   });
 
 export const { logout } = authSlice.actions;
+export const { updateToken } = authSlice.actions;
 
 export default authSlice.reducer;

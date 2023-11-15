@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiWithAuth, apiWithoutAuth } from '../utils/api.js'
+import { apiWithAuth } from '../utils/api.js'
 import CreatePerson from './CreatePerson';
 import DeletePerson from './DeletePerson';
 import EditPerson from './EditPerson';
@@ -24,13 +24,14 @@ const PersonList = () => {
   const fetchPeople = () => {
     apiWithAuth.get('people')
       .then(response => {
-        const peopleData = response.data;
+        console.log(response.data);
+        const peopleData = response.data.$values;
         const updatedPeople = peopleData.map(person => {
           const divisionManager = peopleData.find(p => p.userId === person.divisionManagerId);
           const talentManager = peopleData.find(p => p.userId === person.talentManagerId);
     
-          const divisionManagerName = divisionManager ? `${divisionManager.firstName} ${divisionManager.lastName}` : '';
-          const talentManagerName = talentManager ? `${talentManager.firstName} ${talentManager.lastName}` : '';
+          const divisionManagerName = divisionManager ? `${divisionManager.firstName} ${divisionManager.lastName}` : 'No Manager';
+          const talentManagerName = talentManager ? `${talentManager.firstName} ${talentManager.lastName}` : 'No Manager';
     
           return {
             ...person,
@@ -57,7 +58,7 @@ const PersonList = () => {
   };
 
   const handlePersonCreated = (newPerson) => {
-    setPeople([...people, newPerson]);
+    // setPeople([...people, newPerson]);
     setSidebarOpen(false);
     setRefresh(!refresh);
   };
@@ -79,13 +80,29 @@ const PersonList = () => {
   };
 
   const handleEditClick = (person) => {
-    setSidebarContent(<EditPerson 
-      personId={person.id} 
-      onPersonUpdated={handlePersonUpdated} 
-      divisionManagerName={person.divisionManagerName} 
-      talentManagerName={person.talentManagerName} 
-    />);
+    setSidebarContent(
+      <EditPerson
+        personId={person.id}
+        onPersonUpdated={handlePersonUpdated}
+      />
+    );
     setSidebarOpen(true);
+  };
+
+  const customSidebarStyles = {
+    sidebar: {
+        background: "white",
+        width: "400px",
+        padding: "56px 20px 20px",
+        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        borderLeft: "1px solid #ddd",
+        overflowY: "auto",
+        zIndex: "2",
+    },
+    overlay: {
+        backgroundColor: "rgba(0,0,0,0.5)",
+        zIndex: "1",
+    }
   };
 
   return (
@@ -95,7 +112,7 @@ const PersonList = () => {
         open={sidebarOpen}
         onSetOpen={setSidebarOpen}
         pullRight={true}
-        styles={{ sidebar: { background: "white", width: "300px", paddingTop: '56px' } }}
+        styles={customSidebarStyles}
       >
     <Container fluid style={{ paddingTop: '56px' }}>      
         <div>

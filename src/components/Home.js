@@ -1,15 +1,13 @@
+//Home.js
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Card, Button, Row, Col } from 'react-bootstrap';
+import getUserRoleFromToken from './hooks/getUserRole';
 
 const Home = () => {
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector(state => !!state.auth.token);
+  const userRole = getUserRoleFromToken();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
   return (
     <div className="container mt-5">
       <h1 className="text-center mb-4">Welcome to the Staffing Portal</h1>
@@ -53,6 +51,7 @@ const Home = () => {
             </Card.Body>
           </Card>
         </Col>
+        {userRole === 'Head' || userRole === 'DeputyHead' || userRole === 'DivisionManager' ? (
         <Col>
           <Card>
             <Card.Body>
@@ -66,6 +65,22 @@ const Home = () => {
             </Card.Body>
           </Card>
         </Col>
+        ) : null}
+        {userRole === 'Head' || userRole === 'DeputyHead' || userRole === 'DivisionManager' ? (
+        <Col>
+          <Card>
+            <Card.Body>
+              <Card.Title>Admin Panel</Card.Title>
+              <Card.Text>
+                Administrate portal.
+              </Card.Text>
+              <Link to="/admin">
+                <Button variant="primary">Go to Admin Panel</Button>
+              </Link>
+            </Card.Body>
+          </Card>
+        </Col>
+        ) : null}
       </Row>
       <div className="text-center mt-4">
         <Link to="/changepassword">

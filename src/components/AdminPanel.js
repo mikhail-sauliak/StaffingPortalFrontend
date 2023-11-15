@@ -3,12 +3,16 @@ import { Tabs, Tab, Button, Table } from 'react-bootstrap';
 import { apiWithAuth } from '../utils/api.js';
 import EditPersonModal from './EditPersonModal.js';
 import CreateManager from './CreateManager';
+import getUserRoleFromToken from './hooks/getUserRole.js';
+import { format } from 'date-fns';
 
 const AdminPanel = () => {
     const [activeTab, setActiveTab] = useState('People');
     const [people, setPeople] = useState([]);
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [editingPerson, setEditingPerson] = useState(null);
+    const [selectedDivisionManager, setSelectedDivisionManager] = useState(null);
+    const [talentManagers, setTalentManagers] = useState([]);    
 
     const [newPerson, setNewPerson] = useState({
         firstName: '',
@@ -23,9 +27,11 @@ const AdminPanel = () => {
         role: ''
     });
 
-    useEffect(() => {
+    const userRole = getUserRoleFromToken();
+
+    useEffect(() => {  
         fetchPeople();
-    }, []);
+    }, [userRole]);    
 
     const fetchPeople = () => {
         Promise.all([
@@ -33,8 +39,8 @@ const AdminPanel = () => {
             apiWithAuth.get('user')
         ])
         .then(([peopleResponse, usersResponse]) => {
-            const peopleData = peopleResponse.data;
-            const usersData = usersResponse.data;
+            const peopleData = peopleResponse.data.$values;
+            const usersData = usersResponse.data.$values;
     
             const updatedPeople = peopleData.map(person => {
                 const user = usersData.find(u => u.personId === person.id);
@@ -60,7 +66,25 @@ const AdminPanel = () => {
             console.error('There was an error fetching people or users!', error);
         });
     };
-    
+
+    if (userRole !== 'Head' && userRole !== 'DeputyHead' && userRole !== 'DivisionManager') {
+        return <div>Access Denied</div>;
+    }
+
+    const fetchTalentManagers = (managerId) => {
+        apiWithAuth.get(`administration/manager/${managerId}/subordinates`)
+            .then(response => {
+                setTalentManagers(response.data);
+            })
+            .catch(error => {
+                console.error('There was an error fetching talent managers!', error);
+            });
+    };    
+
+    const handleDivisionManagerChange = (managerId) => {
+        setSelectedDivisionManager(managerId);
+        fetchTalentManagers(managerId);
+    };
     
     const handleDeleteClick = async (personId) => {
         await apiWithAuth.delete(`people/${personId}`);
@@ -121,7 +145,7 @@ const AdminPanel = () => {
                                         <td>{person.role}</td>
                                         <td>{person.divisionManagerName}</td>
                                         <td>{person.talentManagerName}</td>
-                                        <td>{person.availableFrom}</td>
+                                        <td>{format(new Date(person.availableFrom), 'dd/MM/yyyy')}</td> 
                                         <td>{person.techStack}</td>
                                         <td>{person.stream}</td>
                                         <td>{person.level}</td>

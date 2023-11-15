@@ -1,17 +1,18 @@
+// ./store/index.js
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../utils/slice'; 
 
-const preloadedState = {
-  auth: {
-    token: localStorage.getItem('token') || null,
-  },
-};
-
 const store = configureStore({
   reducer: {
-    auth: authReducer,
+      auth: authReducer,
   },
-  preloadedState, 
+  preloadedState: {
+      auth: {
+          token: localStorage.getItem('token') || null,
+          redirectToHome: false,
+          shouldRedirectToLogin: !localStorage.getItem('token'),
+      },
+  },
 });
 
 export default store;

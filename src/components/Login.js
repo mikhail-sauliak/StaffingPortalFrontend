@@ -1,8 +1,9 @@
+//Login.js
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginAsync } from '../utils/slice';
+import { loginAsync, updateToken } from '../utils/slice';
 import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Alert, Col, Row } from 'react-bootstrap';
 
@@ -24,28 +25,31 @@ const Login = () => {
       },
       validationSchema: validationSchema,
       onSubmit: (values) => {
-          dispatch(loginAsync(values));
-      },
-  });
+        dispatch(loginAsync(values))
+          .unwrap()
+          .catch((rejectedValueOrSerializedError) => {
+            setErrorMessage(rejectedValueOrSerializedError);
+          });
+        },
+    });
 
-  React.useEffect(() => {
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem('token');
-      if (newToken && newToken !== token) {
-        // Update Redux state
-        dispatch(/* action to update the token in Redux */);
+    React.useEffect(() => {
+      const handleStorageChange = () => {
+          const newToken = localStorage.getItem('token');
+          if (newToken && newToken !== token) {
+              dispatch(updateToken(newToken));
+          }
+      };
+
+      if (token) {
+          navigate('/');
       }
-    };
 
-    if (token) {
-      navigate('/');
-    }
+      window.addEventListener('storage', handleStorageChange);
 
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+      return () => {
+          window.removeEventListener('storage', handleStorageChange);
+      };
   }, [token, dispatch, navigate]);
 
   return (

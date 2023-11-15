@@ -1,14 +1,17 @@
+//Header.js
 import React, { useState } from 'react';
 import { Navbar, Nav, Modal, Button } from 'react-bootstrap';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LinkContainer } from 'react-router-bootstrap';
 import { useDispatch } from 'react-redux';
-import { logout } from '../utils/slice'; 
+import { logout } from '../utils/slice';
+import getUserRoleFromToken from './hooks/getUserRole';
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const userRole = getUserRoleFromToken();
 
   const handleLogoutClick = () => {
       setShowModal(true);
@@ -56,9 +59,16 @@ const Header = () => {
                     <NavLink to="/salaryreviews" className="nav-link" activeClassName="active">
                         Salary Reviews
                     </NavLink>
-                    <NavLink to="/admin" className="nav-link" activeClassName="active">
-                        Admin Panel
-                    </NavLink>
+                    {userRole === 'Head' || userRole === 'DeputyHead' || userRole === 'DivisionManager' ? (
+                        <NavLink to="/salaryreviewrequests" className="nav-link" activeClassName="active">
+                            Salary Reviews to Approve
+                        </NavLink>
+                    ) : null}
+                    {userRole === 'Head' || userRole === 'DeputyHead' || userRole === 'DivisionManager' ? (
+                        <NavLink to="/admin" className="nav-link" activeClassName="active">
+                            Admin Panel
+                        </NavLink>
+                    ) : null}
                     <NavLink to="/changepassword" className="nav-link" activeClassName="active">
                         Change Password
                     </NavLink> 

@@ -19,8 +19,8 @@ const SalaryReviewList = () => {
         try {
             const responsePeople = await apiWithAuth.get('people');
             const response = await apiWithAuth.get('salaryreview');
-            setPeople(responsePeople.data);
-            setReviews(response.data);
+            setPeople(responsePeople.data.$values);
+            setReviews(response.data.$values);
             
         } catch (error) {
             console.error("Error fetching the salary reviews", error);

@@ -51,24 +51,36 @@ const CreateManager = () => {
 
     const fetchManagers = async () => {
         try {
-            const response = await apiWithAuth.get('User');
-            const managerResponses = await Promise.all(
-                response.data
-                    .filter(user => user.role === 'DivisionManager' || user.role === 'TalentManager')
-                    .map(async manager => {
-                        const personResponse = await apiWithAuth.get(`people/${manager.personId}`);
-                        return {
-                            ...manager,
-                            ...personResponse.data,
-                        };
-                    })
-            );
-            setDivisionManagers(managerResponses.filter(manager => manager.role === 'DivisionManager'));
-            setTalentManagers(managerResponses.filter(manager => manager.role === 'TalentManager' || manager.role === 'DivisionManager'));
+            const divisionManagersResponse = await apiWithAuth.get('administration/division-managers');
+            setDivisionManagers(divisionManagersResponse.data.$values); 
+        
+            const talentManagersResponse = await apiWithAuth.get('administration/talent-managers');
+            setTalentManagers(talentManagersResponse.data.$values);
         } catch (error) {
             console.error('There was an error fetching managers!', error);
+            setError('Failed to fetch managers.');
         }
     };
+
+    const updateTalentManagersList = (divisionManagerId) => {
+        console.log('Updating talent managers for division manager ID:', divisionManagerId); 
+        apiWithAuth.get(`administration/division-manager/${divisionManagerId}/talent-managers`)
+            .then(response => {
+                setTalentManagers(response.data.$values); 
+            })
+            .catch(error => {
+                console.error('Error fetching managed talent managers:', error);
+                setError('Failed to fetch talent managers for the selected division manager.');
+            });        
+    };
+
+    function splitUsername(username) {
+        const splitName = username.replace(/([A-Z])/g, ' $1').trim();
+        const nameParts = splitName.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+        return { firstName, lastName };
+      }
 
     const handleTechStackChange = (selectedOptions) => {
         const techStackString = selectedOptions.map(option => option.value).join(',');
@@ -85,12 +97,25 @@ const CreateManager = () => {
 
     const handleFormChange = (event) => {
         const { name, value } = event.target;
-        setNewManager({ ...newManager, [name]: value });
+        console.log(`Handling form change for ${name} with value ${value}`);
+        console.log('Current manager state before update:', newManager);
+    
+        setNewManager(prevState => {
+            const updatedManager = { ...prevState, [name]: value };
+            console.log('Updated manager state:', updatedManager);
+            return updatedManager;
+        });
+
+        if (name === 'divisionManagerId') {
+            console.log('Updating talent managers list for division manager ID:', value);
+            updateTalentManagersList(value);
+        }
     };
 
     const handleFormSubmit = async (event) => {
         event.preventDefault();
         setSubmitted(true);
+        console.log('Submitting form with data:', newManager);
 
         if (!isFormValid()) {
             setError('Please fill in all required fields.');
@@ -165,13 +190,19 @@ const CreateManager = () => {
                                 <Form.Label>Location</Form.Label>
                                 <Form.Control type="text" placeholder="Enter location" name="location" onChange={handleFormChange} />
                             </Form.Group>
+
                             <Form.Group className="mb-3" controlId="formDivisionManagerId">
                                 <Form.Label>Division Manager</Form.Label>
                                 <Form.Control as="select" name="divisionManagerId" onChange={handleFormChange}>
                                     <option value="">Select Division Manager</option>
-                                    {divisionManagers.map(manager => (
-                                        <option value={manager.personId}>{`${manager.firstName} ${manager.lastName}`}</option>
-                                    ))}
+                                        {divisionManagers && divisionManagers.map(manager => {
+                                        const { firstName, lastName } = splitUsername(manager.username);
+                                        return (
+                                            <option key={manager.id} value={manager.id}>
+                                                {`${firstName} ${lastName}`}
+                                            </option>
+                                        );                            
+                                    })}
                                 </Form.Control>
                             </Form.Group>
 
@@ -179,11 +210,17 @@ const CreateManager = () => {
                                 <Form.Label>Talent Manager</Form.Label>
                                 <Form.Control as="select" name="talentManagerId" onChange={handleFormChange}>
                                     <option value="">Select Talent Manager</option>
-                                    {talentManagers.map(manager => (
-                                        <option value={manager.personId}>{`${manager.firstName} ${manager.lastName}`}</option>
-                                    ))}
+                                    {talentManagers && talentManagers.map(manager => {
+                                        const { firstName, lastName } = splitUsername(manager.username);
+                                        return (
+                                            <option key={manager.id} value={manager.id}>
+                                                {`${firstName} ${lastName}`}
+                                            </option>
+                                        );
+                                    })}
                                 </Form.Control>
                             </Form.Group>
+
                             <Form.Group className="mb-3" controlId="formAvailableFrom">
                                 <Form.Label>Available From</Form.Label>
                                 <Form.Control type="date" name="availableFrom" onChange={handleFormChange} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Table, Spinner } from 'react-bootstrap'; // import spinner
-import { apiWithAuth, apiWithoutAuth } from '../utils/api.js'
+import { apiWithAuth } from '../utils/api.js'
 
 const CandidateSelector = ({ project, onProjectUpdated }) => {
   const [candidates, setCandidates] = useState([]);
@@ -13,8 +13,8 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
     setLoading(true);
     apiWithAuth.get('people')
       .then(response => {
-        setCandidates(response.data);
-        console.log('Candidates Loaded:', response.data);
+        setCandidates(response.data.$values);
+        console.log('Candidates Loaded:', response.data.$values);
         setLoading(false);
       })
       .catch(error => {
@@ -46,14 +46,14 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
     
     apiWithAuth.put(`projects/${project.id}`, updatedProject)
       .then(response => {
-        console.log('Project updated:', response.data);
+        console.log('Project updated:', response.data.$values);
         setShowModal(false);
-        onProjectUpdated(response.data); // callback to renew project in a list
+        onProjectUpdated(response.data.$values); // callback to renew project in a list
       })
       .catch(error => {
         console.error('Error updating project:', error);
-        if (error.response && error.response.data && error.response.data.errors) {
-            setErrors(error.response.data.errors); // Установка ошибок в state
+        if (error.response && error.response.data.$values && error.response.data.errors) {
+            setErrors(error.response.data.errors);
         }
     })};
 

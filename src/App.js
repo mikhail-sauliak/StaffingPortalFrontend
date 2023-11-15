@@ -1,18 +1,21 @@
+// App.js
 import React from 'react';
 import { Provider } from 'react-redux';
 import store from './store';
 import AppRoutes from './Routes';
-import Header from './components/Header'; 
+import Header from './components/Header';
+import './styles/styles.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
-    return (
-        <Provider store={store}>
-            <Header /> 
-            <AppRoutes />
-        </Provider>
-    );
+  return (
+    <Provider store={store}>
+      <Header /> 
+      <AppRoutes />
+    </Provider>
+  );
 };
 
 export default App;

@@ -5,20 +5,23 @@ import { format } from 'date-fns';
 import { Dropdown, DropdownButton } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import getUserRoleFromToken from './hooks/getUserRole.js';
 
 const SalaryReviewApproval = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [people, setPeople] = useState([]);
   const [editedFields, setEditedFields] = useState({});
+  const userRole = getUserRoleFromToken();
 
   const fetchRequests = async () => {
     try {
+        console.log('Fetching salary review requests');
         const response = await apiWithAuth.get('salaryreviewrequests');
         const responsePeople = await apiWithAuth.get('people');
-        const requestData = response.data;
+        const requestData = response.data.$values;
         setRequests(requestData);
-        setPeople(responsePeople.data);
+        setPeople(responsePeople.data.$values);
         setLoading(false);
         // Initialize editedFields with the values from the requests
         const initialEditedFields = requestData.reduce((acc, request) => {
@@ -31,6 +34,7 @@ const SalaryReviewApproval = () => {
           return acc;
         }, {});
         setEditedFields(initialEditedFields);
+        console.log('Fetched salary review requests successfully');
       } catch (error) {
         console.error("Error fetching the salary review requests", error);
       }
@@ -39,6 +43,10 @@ const SalaryReviewApproval = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  if (userRole === 'TalentManager') {
+    return <div>Access Denied</div>;
+  }
 
   const handleFieldChange = (requestId, field, value) => {
     setEditedFields({

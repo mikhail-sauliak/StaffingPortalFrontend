@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { apiWithAuth, apiWithoutAuth } from '../utils/api.js'
 import { Form, Button, Container } from 'react-bootstrap';
+import Select from 'react-select';
+import useFetchManagers from './hooks/useFetchManagers';
+import { techStackOptions, streamOptions, levelOptions } from './hooks/selectOptions';
+import useFormInput from './hooks/useFormInput';
 
 const CreateProject = ({ onProjectCreated }) => {
     const [projectData, setProjectData] = useState({
@@ -94,8 +97,8 @@ const CreateProject = ({ onProjectCreated }) => {
 
                 <Form.Group controlId="techStack">
                     <Form.Label>Tech Stack</Form.Label>
-                    <Form.Control type="text" name="techStack" value={projectData.techStack} onChange={handleInputChange} />
-                </Form.Group>
+                    <Select isMulti options={techStackOptions} name="techStack" value={techStackOptions.filter(option => projectData.techStack.includes(option.value))} onChange={handleInputChange} />
+                    </Form.Group>
 
                 <Form.Group controlId="startDate">
                     <Form.Label>Start Date</Form.Label>

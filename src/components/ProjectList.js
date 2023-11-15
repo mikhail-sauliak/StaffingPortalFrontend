@@ -23,7 +23,7 @@ const ProjectList = () => {
     useEffect(() => {
         apiWithAuth.get('projects')
             .then(response => {
-                setProjects(response.data);
+                setProjects(response.data.$values);
                 setSidebarOpen(false);
             })
             .catch(error => {
@@ -120,8 +120,8 @@ const ProjectList = () => {
                                         <td>{format(new Date(project.endDate), 'dd/MM/yyyy')}</td>
                                         <td>{project.search}</td>
                                         <td>{project.signed ? 'Yes' : 'No'}</td>
-                                        <td>{project.positionSigned}</td>
-                                        <td>{project.positionClosed}</td>
+                                        <td>{format(new Date(project.positionSigned), 'dd/MM/yyyy')}</td>
+                                        <td>{format(new Date(project.positionClosed), 'dd/MM/yyyy')}</td>
                                         <td>{project.location}</td>
                                         <td>{project.stream}</td>
                                         <td>{project.level}</td>

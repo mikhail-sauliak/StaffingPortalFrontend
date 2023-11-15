@@ -5,3 +5,16 @@
     margin-bottom: 20px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
+
+/* Sidebar */
+.sidebar-custom {
+    background-color: white;
+    padding-top: 56px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
+    border-left: 1px solid #ddd;
+}
+
+.sidebar-overlay-custom {
+    opacity: 0.5;
+    background-color: black;
+}

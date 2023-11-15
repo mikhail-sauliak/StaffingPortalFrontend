@@ -1,3 +1,4 @@
+//Routes.js
 import React, { useEffect } from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import Home from './components/Home';
@@ -14,10 +15,11 @@ import { resetRedirect } from './utils/slice';
 
 const AppRoutes = () => {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector(state => !!state.auth.token);
+  const navigate = useNavigate();
+
+  const isAuthenticated = useSelector(state => state.auth.token);
   const shouldRedirect = useSelector(state => state.auth.redirectToHome);
   const shouldRedirectToLogin = useSelector(state => state.auth.shouldRedirectToLogin);
-  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('shouldRedirect:', shouldRedirect);
@@ -25,8 +27,7 @@ const AppRoutes = () => {
     if (shouldRedirect) {
         navigate('/');
         dispatch(resetRedirect());
-    }
-    if (shouldRedirectToLogin) {
+    } else if (shouldRedirectToLogin) {
         navigate('/login');
         dispatch(resetRedirect());
     }
@@ -47,8 +48,7 @@ const AppRoutes = () => {
       ) : (
         <React.Fragment>
           <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Login />} />
-          {/* <Route path="*" element={<Navigate to="/login" replace />} /> */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </React.Fragment>
       )}
     </Routes>
