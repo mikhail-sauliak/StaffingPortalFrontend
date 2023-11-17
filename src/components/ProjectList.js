@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { apiWithAuth, apiWithoutAuth } from '../utils/api.js'
+import { apiWithAuth } from '../utils/api.js'
 import EditProject from './EditProject';
 import DeleteProject from './DeleteProject';
 import CreateProject from './CreateProject';

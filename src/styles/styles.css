@@ -18,3 +18,69 @@
     opacity: 0.5;
     background-color: black;
 }
+
+/* modal window */
+.modal-custom {
+    min-width: 1000px;
+}
+
+.modal-header-custom {
+    background-color: #007bff;
+    color: white; 
+    border-top-left-radius: .3rem;
+    border-top-right-radius: .3rem;
+}
+
+.modal-body-custom {
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.modal-footer-custom {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-bottom-left-radius: .3rem;
+    border-bottom-right-radius: .3rem;
+}
+
+.table-custom {
+    width: 100%;
+    max-width: 100%; /* Установка максимальной ширины */
+    table-layout: fixed; /* Фиксированное размещение колонок */
+}
+
+.table-custom th, .table-custom td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.table-custom tr:nth-child(even){background-color: #f2f2f2;}
+
+.table-custom th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-custom {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-custom:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.checkbox-custom {
+    margin-right: 10px;
+}
+
+.candidate-status {
+    max-width: 150px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}

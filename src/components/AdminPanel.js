@@ -4,6 +4,7 @@ import { apiWithAuth } from '../utils/api.js';
 import EditPersonModal from './EditPersonModal.js';
 import CreateManager from './CreateManager';
 import getUserRoleFromToken from './hooks/getUserRole.js';
+import SalaryStatistics from './SalaryStatistics.js';
 import { format } from 'date-fns';
 
 const AdminPanel = () => {
@@ -169,7 +170,7 @@ const AdminPanel = () => {
                         {/* Content for SalaryReviews tab */}
                     </Tab>
                     <Tab eventKey="Statistics" title="Statistics">
-                        {/* Content for Statistics tab */}
+                        <SalaryStatistics />
                     </Tab>
                 </Tabs>
             </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Table, Spinner } from 'react-bootstrap'; // import spinner
 import { apiWithAuth } from '../utils/api.js'
+import '../styles/styles.css';
 
 const CandidateSelector = ({ project, onProjectUpdated }) => {
   const [candidates, setCandidates] = useState([]);
@@ -23,6 +24,23 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
       });
   }, []);
 
+  const isSuitableCandidate = (candidate) => {
+    const projectTechStackArray = project.techStack.split(', ');
+
+    const techStackMatch = candidate.techStack && projectTechStackArray.some(tech => candidate.techStack.includes(tech));
+    const levelMatch = candidate.level === project.level;
+
+    const projectStartDate = new Date(project.startDate);
+    const candidateAvailableFrom = new Date(candidate.availableFrom);
+
+    const oneWeekAfterStart = new Date(projectStartDate);
+    oneWeekAfterStart.setDate(projectStartDate.getDate() + 7);
+
+    const availabilityMatch = candidate.isAvailable || (candidateAvailableFrom <= oneWeekAfterStart);
+
+    return techStackMatch && levelMatch && availabilityMatch;
+  };  
+
   const handleAddCandidate = (candidate) => {
     if (!selectedCandidates.includes(candidate)) {
       setSelectedCandidates([...selectedCandidates, candidate]);
@@ -39,23 +57,38 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
   };
 
   const handleSaveCandidates = () => {
-    const updatedProject = {
-      ...project,
-      candidateIds: selectedCandidates.map(c => c.id),
+    const projectDataToUpdate = {
+        name: project.name,
+        techStack: project.techStack,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        comments: project.comments,
+        search: project.search,
+        signed: project.signed,
+        positionSigned: project.positionSigned,
+        positionClosed: project.positionClosed,
+        location: project.location,
+        stream: project.stream,
+        level: project.level,
+        priority: project.priority,
+        attachment: project.attachment,
+        candidateIds: selectedCandidates.map(c => c.id),
     };
-    
-    apiWithAuth.put(`projects/${project.id}`, updatedProject)
-      .then(response => {
-        console.log('Project updated:', response.data.$values);
-        setShowModal(false);
-        onProjectUpdated(response.data.$values); // callback to renew project in a list
-      })
-      .catch(error => {
-        console.error('Error updating project:', error);
-        if (error.response && error.response.data.$values && error.response.data.errors) {
-            setErrors(error.response.data.errors);
-        }
-    })};
+
+    apiWithAuth.put(`projects/${project.id}`, projectDataToUpdate)
+        .then(response => {
+            console.log('Project updated:', response.data);
+            setShowModal(false);
+            onProjectUpdated(response.data);
+        })
+        .catch(error => {
+            console.error('Error updating project:', error);
+            if (error.response && error.response.data && error.response.data.errors) {
+                setErrors(error.response.data.errors);
+            }
+        });
+    };
+
 
   return (
     <div>
@@ -68,11 +101,11 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
             setShowModal(true);
         }}>Add Candidate</Button>
       
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
+      <Modal className="modal-custom" show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header className="modal-header-custom" closeButton>
             <Modal.Title>Select a Candidate</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+        </Modal.Header  >
+        <Modal.Body className="modal-body-custom">
             {errors.Name && <p style={{color: 'red'}}>{errors.Name[0]}</p>} {/* error with Name */}
             {errors.Level && <p style={{color: 'red'}}>{errors.Level[0]}</p>} {/* error with Level */}
             {errors.Location && <p style={{color: 'red'}}>{errors.Location[0]}</p>} {/* error with Location */}
@@ -87,23 +120,31 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
             </div>
         ) : (
             <>
-                <Table>
+                <Table className="table-custom">
                     <tbody>
                         {candidates.map(candidate => (
-                            <tr key={candidate.id}>
+                            <tr key={candidate.id} style={isSuitableCandidate(candidate) ? { backgroundColor: '#dff0d8' } : {}}>
                                 <td>
                                     <input 
                                         type="checkbox" 
+                                        className="checkbox-custom"
                                         onChange={() => handleSelectCandidate(candidate)} 
                                         checked={selectedCandidates.includes(candidate)}
                                     />
                                 </td>
                                 <td>{candidate.firstName}</td>
+                                <td>{candidate.lastName}</td>
+                                <td>{candidate.location}</td>
+                                <td>{candidate.stream}</td>
+                                <td>{candidate.techStack}</td>
+                                <td className="candidate-status">
+                                  {isSuitableCandidate(candidate) && <span>🌟 Suitable Candidate</span>}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </Table>
-                <Button onClick={handleSaveCandidates}>Save Candidates</Button>
+                <Button className="btn-custom" onClick={handleSaveCandidates}>Save Candidates</Button>
             </>
         )}
     </Modal.Body>
