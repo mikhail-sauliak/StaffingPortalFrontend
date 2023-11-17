@@ -5,6 +5,7 @@ import EditPersonModal from './EditPersonModal.js';
 import CreateManager from './CreateManager';
 import getUserRoleFromToken from './hooks/getUserRole.js';
 import SalaryStatistics from './SalaryStatistics.js';
+import FileUpload from '../utils/FileUpload.js';
 import { format } from 'date-fns';
 
 const AdminPanel = () => {
@@ -92,6 +93,10 @@ const AdminPanel = () => {
         fetchPeople();
     };
 
+    const handleUploadSuccess = () => {
+        fetchPeople();
+    };
+
     const handleUpdatePerson = async (personId, updatedData) => {
         await apiWithAuth.put(`people/${personId}`, updatedData);
         fetchPeople();
@@ -171,6 +176,9 @@ const AdminPanel = () => {
                     </Tab>
                     <Tab eventKey="Statistics" title="Statistics">
                         <SalaryStatistics />
+                    </Tab>
+                    <Tab eventKey="UploadData" title="Upload Data">
+                        <FileUpload onUploadSuccess={handleUploadSuccess} />
                     </Tab>
                 </Tabs>
             </div>
