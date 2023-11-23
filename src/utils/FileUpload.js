@@ -42,7 +42,7 @@ const FileUpload = ({ onUploadSuccess }) => {
                 techStack: data.TechStack,
                 stream: data.Stream,
                 level: data.Level,
-                TMAware: data.TMAware === "Not" ? false : true,
+                TMAware: data.TMAware,
                 isDismissed: data.IsDismissed === "No" ? false : true, 
                 assignmentExistsInGCP: data.AssignmentExistsInGCP === "Yes" ? true : false
             };

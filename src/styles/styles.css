@@ -19,6 +19,10 @@
     background-color: black;
 }
 
+.sidebar-container-custom {
+    padding-top: 70px;
+}
+
 /* modal window */
 .modal-custom {
     min-width: 1000px;

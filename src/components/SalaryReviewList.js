@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiWithAuth, apiWithoutAuth } from '../utils/api.js';
+import { apiWithAuth } from '../utils/api.js';
 import { Container, Table, Button, Modal, DropdownButton, Form, Dropdown } from 'react-bootstrap';
 import { format } from 'date-fns';
 
@@ -67,6 +67,12 @@ const SalaryReviewList = () => {
 
     const handleShowReviewModal = (review) => {
         setSelectedReview(review);
+        setJustification('');
+        setNewSalaryStartDate('');
+        setSalaryReceivedDate('');
+        setTalentManagerComments('');
+        setCurrency('');
+        setContractType('');
         setShowReviewModal(true);
     };
 

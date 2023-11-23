@@ -82,8 +82,25 @@ const SalaryReviewApproval = () => {
 
   const handleApprove = async (requestId) => {
     try {
-      await apiWithAuth.patch(`salaryreviewrequests/${requestId}/approve`, { Comments: 'Approved' });
-      fetchRequests();  // Refresh the list after approval
+      const requestToApprove = requests.find(r => r.id === requestId);
+      const editedRequest = editedFields[requestId];
+      const formattedDate = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx");
+      const payload = {
+        Currency: editedRequest.currency,
+        ContractType: editedRequest.contractType,
+        ReviewDate: formattedDate,
+        NewSalary: editedRequest.proposedSalary,
+        OldSalary: editedRequest.oldSalary,
+        NewSalaryStartDate: requestToApprove.newSalaryStartDate,
+        SalaryReceivedDate: requestToApprove.salaryReceivedDate,
+        TalentManagerComments: requestToApprove.talentManagerComments,
+        DivisionManagerComments: editedRequest.divisionManagerComments,
+        Justification: requestToApprove.justification
+      };
+  
+      console.log(`Sending approve request for ID: ${requestId}`);
+      await apiWithAuth.patch(`salaryreviewrequests/${requestId}/approve`, payload);
+      fetchRequests();
     } catch (error) {
       console.error('Error approving the request:', error);
     }

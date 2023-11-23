@@ -2,10 +2,16 @@ import { useState, useEffect } from 'react';
 import useFetchManagers from './useFetchManagers';
 import formatDate from './formatDate';
 import { apiWithAuth } from '../../utils/api.js';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const usePersonForm = (initialState, personId, onSave) => {
-  const [formData, setFormData] = useState(initialState);
+const usePersonForm = (initialState, personId, onSave, onPersonUpdated) => {
+  const [formData, setFormData] = useState({
+    ...initialState,
+    plannedAssignment: []
+  });
   const [divisionManagers, talentManagers, updateTalentManagersList] = useFetchManagers();
+  const [projects, setProjects] = useState([]);
 
   useEffect(() => {
     if (personId) {
@@ -13,16 +19,21 @@ const usePersonForm = (initialState, personId, onSave) => {
         .then(response => {
           const personData = response.data;
           setFormData({
-            ...personData,
+            ...personData, 
             id: personId,
             availableFrom: formatDate(personData.availableFrom),
             techStack: personData.techStack ? personData.techStack.split(', ') : [],
+            divisionManagerId: personData.divisionManagerId,
+            talentManagerId: personData.talentManagerId
           });
+          if (personData.divisionManagerId) {
+            updateTalentManagersList(personData.divisionManagerId);
+          }
         })
         .catch(error => console.error('Error fetching the person data:', error));
     }
   }, [personId]);
-
+  
   const handleInputChange = (event) => {
     const { name, value, type, checked } = event.target;
     if (type === 'checkbox') {
@@ -43,6 +54,9 @@ const usePersonForm = (initialState, personId, onSave) => {
         updateTalentManagersList(selectedOption.value);
         setFormData({ ...formData, talentManagerId: null });
       }
+    } else if (name === 'plannedAssignment') {
+      const projectIds = selectedOption.map(option => option.value);
+      setFormData({ ...formData, plannedAssignment: projectIds });
     } else {
       setFormData({
         ...formData,
@@ -71,18 +85,28 @@ const usePersonForm = (initialState, personId, onSave) => {
       Stream: formData.stream,
       TMAware: formData.tmAware,
       Level: formData.level,
+      UserId: formData.userId,
+      ProjectIds: formData.plannedAssignment.join(', '),
       AssignmentExistsInGCP: formData.assignmentExistsInGCP === 'Yes' || formData.assignmentExistsInGCP === true
     };
   
     try {
-      if (formData.id) { 
+      if (formData.id) {
         await apiWithAuth.put(`people/${formData.id}`, dataToSend);
+        toast.success("Person updated successfully!");
+        onSave({ ...dataToSend, id: formData.id }); // Передаем данные из формы
       } else {
-        await apiWithAuth.post('people', dataToSend); 
+        const response = await apiWithAuth.post('people', dataToSend);
+        if (response && response.data) {
+          toast.success("Person created successfully!");
+          onSave(response.data); // Передаем данные с сервера для новой записи
+        } else {
+          throw new Error('No data returned from server');
+        }
       }
-      onSave();
     } catch (error) {
       console.error('Error processing the person form:', error);
+      toast.error(`Failed to ${formData.id ? 'update' : 'create'} person.`);
     }
   };
   
@@ -96,6 +120,7 @@ const usePersonForm = (initialState, personId, onSave) => {
     handleInputChange,
     handleSelectChange,
     handleTechStackChange,
+    projects,
     handleSubmit
   };
 };

@@ -5,6 +5,7 @@ import EditPersonModal from './EditPersonModal.js';
 import CreateManager from './CreateManager';
 import getUserRoleFromToken from './hooks/getUserRole.js';
 import SalaryStatistics from './SalaryStatistics.js';
+import SalaryReviewsHistory from './SalaryReviewsHistory.js'
 import FileUpload from '../utils/FileUpload.js';
 import { format } from 'date-fns';
 
@@ -176,6 +177,9 @@ const AdminPanel = () => {
                     </Tab>
                     <Tab eventKey="Statistics" title="Statistics">
                         <SalaryStatistics />
+                    </Tab>
+                    <Tab eventKey="SalaryReviewsHistory" title="Salary Reviews History">
+                        <SalaryReviewsHistory />
                     </Tab>
                     <Tab eventKey="UploadData" title="Upload Data">
                         <FileUpload onUploadSuccess={handleUploadSuccess} />

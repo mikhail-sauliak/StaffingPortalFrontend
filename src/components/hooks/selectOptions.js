@@ -5,6 +5,7 @@ export const techStackOptions = [
     { value: 'Python', label: 'Python' },
     { value: 'PHP', label: 'PHP' },
     { value: 'JS', label: 'JS' },
+    { value: 'Manual', label: 'Manual' },
 ];
 
 export const streamOptions = [

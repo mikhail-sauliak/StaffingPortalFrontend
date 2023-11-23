@@ -15,6 +15,7 @@ const PersonList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarContent, setSidebarContent] = useState(null);
   const [refresh, setRefresh] = useState(false);
+  const [sidebarTitle, setSidebarTitle] = useState('');
  
   useEffect(() => {    
     setSidebarOpen(false);
@@ -57,8 +58,7 @@ const PersonList = () => {
     return `${months} months ${weeks} weeks ${days} days`;
   };
 
-  const handlePersonCreated = (newPerson) => {
-    // setPeople([...people, newPerson]);
+  const handlePersonCreated = () => {
     setSidebarOpen(false);
     setRefresh(!refresh);
   };
@@ -69,7 +69,26 @@ const PersonList = () => {
   };
 
   const handlePersonUpdated = (updatedPerson) => {
-    setPeople(people.map(person => (person.id === updatedPerson.id ? updatedPerson : person)));
+    console.log("Updated Person:", updatedPerson);
+    console.log("Current people list:", people);
+  
+    const divisionManager = people.find(p => p.userId === updatedPerson.divisionManagerId);
+    const talentManager = people.find(p => p.userId === updatedPerson.talentManagerId);
+  
+    console.log("Found division manager:", divisionManager);
+    console.log("Found talent manager:", talentManager);
+  
+    const divisionManagerName = divisionManager ? `${divisionManager.firstName} ${divisionManager.lastName}` : 'No Manager';
+    const talentManagerName = talentManager ? `${talentManager.firstName} ${talentManager.lastName}` : 'No Manager';
+  
+    const updatedPersonFormatted = {
+      ...updatedPerson,
+      divisionManagerName,
+      talentManagerName
+    };
+  
+    setPeople(people.map(person => person.id === updatedPersonFormatted.id ? updatedPersonFormatted : person));
+  
     setSidebarOpen(false);
     setRefresh(!refresh);
   };
@@ -77,6 +96,7 @@ const PersonList = () => {
   const handleCreateClick = () => {
     setSidebarContent(<CreatePerson onPersonCreated={handlePersonCreated} />);
     setSidebarOpen(true);
+    setSidebarTitle("New Person");
   };
 
   const handleEditClick = (person) => {
@@ -87,13 +107,28 @@ const PersonList = () => {
       />
     );
     setSidebarOpen(true);
+    setSidebarTitle("Edit Person");
+  };
+
+  const formatAvailableDate = (availableFromDate) => {
+    if (!availableFromDate) {
+      return 'N/A'; // Fallback for invalid or missing dates
+    }
+
+    try {
+      const parsedDate = parseISO(availableFromDate);
+      return format(parsedDate, 'dd/MM/yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   const customSidebarStyles = {
     sidebar: {
         background: "white",
         width: "400px",
-        padding: "56px 20px 20px",
+        padding: "50px 20px 20px",
         boxShadow: "0 0 10px rgba(0,0,0,0.1)",
         borderLeft: "1px solid #ddd",
         overflowY: "auto",
@@ -108,13 +143,18 @@ const PersonList = () => {
   return (
     <div>
     <Sidebar
-        sidebar={sidebarContent}
+        sidebar={
+          <>
+              <h3 style={{ padding: '10px' }}>{sidebarTitle}</h3>
+              {sidebarContent}
+          </>
+      }
         open={sidebarOpen}
         onSetOpen={setSidebarOpen}
         pullRight={true}
         styles={customSidebarStyles}
       >
-    <Container fluid style={{ paddingTop: '56px' }}>      
+    <Container fluid style={{ paddingTop: '56px' }} className="sidebar-container-custom">      
         <div>
           <h1>Person List</h1>
           <Button onClick={handleCreateClick}>Add New Person</Button>
@@ -147,7 +187,7 @@ const PersonList = () => {
                     <td>{person.location}</td>
                     <td>{person.divisionManagerName}</td>
                     <td>{person.talentManagerName}</td>
-                    <td>{format(new Date(person.availableFrom), 'dd/MM/yyyy')}</td> 
+                    <td>{formatAvailableDate(person.availableFrom)}</td>
                     <td>{person.tmAware}</td>
                     <td>{person.level}</td>
                     <td>
