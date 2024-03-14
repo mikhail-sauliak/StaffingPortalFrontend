@@ -17,6 +17,7 @@
      handleTechStackChange
    }) => {
      console.log("Projects in PersonForm:", projects);
+     
      const handleDivisionManagerChange = (selectedOption) => {
          if (selectedOption) {
            setFormData({ ...formData, divisionManagerId: selectedOption.value });

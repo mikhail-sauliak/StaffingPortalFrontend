@@ -52,7 +52,8 @@ const SalaryReviewList = () => {
             salaryReceivedDate,
             talentManagerComments,
             currency,
-            contractType
+            contractType,
+            status: "Pending"
         };
         try {
             await apiWithAuth.post('salaryreviewrequests', data);
@@ -87,19 +88,19 @@ const SalaryReviewList = () => {
             <Table responsive striped bordered hover>
                 <thead>
                     <tr>
-                        <th>PersonId</th>
+                        <th>Person Id</th>
                         <th>Person Name</th>
-                        <th>ReviewDate</th>
+                        <th>Review Date</th>
                         <th>Justification</th>
-                        <th>OldSalary</th>
-                        <th>ProposedSalary</th>
+                        <th>Old Salary</th>
+                        <th>Proposed Salary</th>
                         <th>Currency</th>
-                        <th>ContractType</th>
-                        <th>NewSalaryStartDate</th>
-                        <th>SalaryReceivedDate</th>
-                        <th>DivisionManagerComments</th>
-                        <th>TalentManagerComments</th>
-                        <th>IsApproved</th>
+                        <th>Contract Type</th>
+                        <th>New Salary Start Date</th>
+                        <th>Salary Received Date</th>
+                        <th>DM Comments</th>
+                        <th>TM Comments</th>
+                        <th>Is Approved</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -122,7 +123,7 @@ const SalaryReviewList = () => {
                                     Start Salary Review
                                 </Button>
                             </td>
-                        </tr>
+                        </tr> 
                     ))}
                 </tbody>
             </Table>

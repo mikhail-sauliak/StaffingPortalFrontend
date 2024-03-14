@@ -8,7 +8,7 @@ import PersonList from './components/PersonList';
 import SalaryReviewList from './components/SalaryReviewList';
 import SalaryReviewRequests from './components/SalaryReviewApproval';
 import ChangePassword from './components/ChangePassword';
-import AdminPanel from './components/AdminPanel';
+import AdminPanel from './components/Admin/AdminPanel';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { resetRedirect } from './utils/slice';

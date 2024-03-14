@@ -45,7 +45,7 @@ const CreatePerson = ({ onPersonCreated }) => {
     event.preventDefault();
     apiWithAuth.post('people', {
       ...personData,
-      techStack: personData.techStack.map(tech => tech.value) // Handle multi-select conversion
+      techStack: personData.techStack.map(tech => tech.value) 
     })
     .then(response => {
       onPersonCreated(response.data);

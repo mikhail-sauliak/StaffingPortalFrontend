@@ -50,12 +50,12 @@ const Header = () => {
                     <NavLink to="/" exact className="nav-link" activeClassName="active">
                         Home
                     </NavLink>
-                    <NavLink to="/projects" className="nav-link" activeClassName="active">
+                    {/* <NavLink to="/projects" className="nav-link" activeClassName="active">
                         Projects
                     </NavLink>
                     <NavLink to="/people" className="nav-link" activeClassName="active">
                         People
-                    </NavLink>
+                    </NavLink> */}
                     <NavLink to="/salaryreviews" className="nav-link" activeClassName="active">
                         Salary Reviews
                     </NavLink>

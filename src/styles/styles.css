@@ -47,9 +47,30 @@
     border-bottom-right-radius: .3rem;
 }
 
-.table-custom {
+.centered-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Центрирование по вертикали, если это необходимо */
+  }
+
+.table-responsive {
     width: 100%;
-    max-width: 100%; /* Установка максимальной ширины */
+    overflow-x: auto;
+  }
+  
+  .table td, .table th {
+    white-space: normal;
+    vertical-align: middle;
+  }
+
+.table-responsive.editing, .table-responsive.editing .table {
+    min-width: 100%; /* Таблица будет занимать минимально возможную ширину */
+}
+
+.table-custom {
+    width: 90%;
+    max-width: 90%; /* Установка максимальной ширины */
     table-layout: fixed; /* Фиксированное размещение колонок */
 }
 
@@ -88,3 +109,27 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
 }
+
+.saveButton {
+    background-color: #babdbcef !important;
+    color: white !important;
+    width: 'auto'; 
+    flex: 1;
+}
+
+.cancelButton {
+    background-color: #e4253ece !important;
+    color: white !important;
+    width: 'auto%'; 
+    flex: 1;
+}
+
+.highlight-yellow {
+    /* border: 3px solid rgb(241, 230, 15); */
+    background-color: rgba(212, 196, 107, 0.89);
+  }
+  
+  .highlight-red {
+    /* border: 3px solid rgb(198, 12, 12); */
+    background-color: rgba(228, 162, 134, 0.849);
+  }

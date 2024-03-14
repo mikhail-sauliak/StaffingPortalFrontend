@@ -7,12 +7,12 @@ import getUserRoleFromToken from './hooks/getUserRole';
 
 const Home = () => {
   const userRole = getUserRoleFromToken();
-
+// два компонента, которые не нужны после общения с Димой - закоменчены
   return (
     <div className="container mt-5">
       <h1 className="text-center mb-4">Welcome to the Staffing Portal</h1>
       <Row xs={1} md={2} lg={4} className="g-4">
-        <Col>
+        {/* <Col>
           <Card>
             <Card.Body>
               <Card.Title>Projects</Card.Title>
@@ -37,7 +37,7 @@ const Home = () => {
               </Link>
             </Card.Body>
           </Card>
-        </Col>
+        </Col> */}
         <Col>
           <Card>
             <Card.Body>

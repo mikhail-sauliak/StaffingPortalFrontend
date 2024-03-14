@@ -14,9 +14,18 @@ export const streamOptions = [
 ];
 
 export const levelOptions = [
+    { value: 'Intern', label: 'Intern' },
+    { value: 'Junior-', label: 'Junior-' },
     { value: 'Junior', label: 'Junior' },
+    { value: 'Junior+', label: 'Junior+' },
+    { value: 'Middle-', label: 'Middle-' },
     { value: 'Middle', label: 'Middle' },
+    { value: 'Middle+', label: 'Middle+' },
+    { value: 'Senior-', label: 'Senior-' },
     { value: 'Senior', label: 'Senior' },
+    { value: 'Senior+', label: 'Senior+' },
+    { value: 'Lead-', label: 'Lead-' },
     { value: 'Lead', label: 'Lead' },
-    { value: 'Principle', label: 'Principle' },
+    { value: 'Lead+', label: 'Lead+' },
+    { value: 'Principal', label: 'Principal' },
 ];

@@ -45,7 +45,7 @@ const useProjectForm = (initialState = { techStack: [] }, projectId, onSave) => 
         event.preventDefault();
         const dataToSend = {
             ...projectData,
-            techStack: Array.isArray(projectData.techStack) ? projectData.techStack.join(', ') : projectData.techStack, // Преобразуйте в строку при отправке
+            techStack: Array.isArray(projectData.techStack) ? projectData.techStack.join(', ') : projectData.techStack, 
             signed: projectData.signed ? true : false,
             attachment: projectData.attachment || "default_attachment_value",
             candidateIds: Array.isArray(projectData.candidateIds) ? projectData.candidateIds.join(',') : projectData.candidateIds

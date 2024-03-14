@@ -30,6 +30,10 @@ const FileUpload = ({ onUploadSuccess }) => {
         reader.readAsBinaryString(file);
     };
 
+    const excelDateToJSDate = (excelDate) => {
+        return new Date((excelDate - (25567 + 2)) * 86400 * 1000).toISOString();
+    };
+    
     const processAndUploadData = async (jsonData) => {
         for (const data of jsonData) {
             const personData = {
@@ -38,26 +42,26 @@ const FileUpload = ({ onUploadSuccess }) => {
                 location: data.Location,
                 divisionManagerId: data.DivisionManagerId,
                 talentManagerId: data.TalentManagerId,
-                availableFrom: data.AvailableFrom,
+                availableFrom: data.AvailableFrom ? excelDateToJSDate(data.AvailableFrom) : null,
                 techStack: data.TechStack,
                 stream: data.Stream,
                 level: data.Level,
-                TMAware: data.TMAware,
-                isDismissed: data.IsDismissed === "No" ? false : true, 
-                assignmentExistsInGCP: data.AssignmentExistsInGCP === "Yes" ? true : false
+                TMAware: "Not",
+                isDismissed: false, 
+                assignmentExistsInGCP: true
             };
 
             const salaryReviewData = {
-                reviewDate: data.ReviewDate,
-                justification: data.Justification,
-                reviewResult: data.ReviewResult,
+                reviewDate: data.ReviewDate ? excelDateToJSDate(data.ReviewDate) : null,
+                justification: "Annual",
+                reviewResult: "Aprooved",
                 oldSalary: parseFloat(data.OldSalary),
                 proposedSalary: parseFloat(data.ProposedSalary),
-                isApproved: data.IsApproved === "Yes" ? true : false,
+                isApproved: true,
                 currency: data.Currency,
                 contractType: data.ContractType,
-                divisionManagerComments: data.DivisionManagerComments, 
-                talentManagerComments: data.TalentManagerComments
+                divisionManagerComments: "Good", 
+                talentManagerComments: "Good feedbacks"
             };
 
             try {
