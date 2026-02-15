@@ -133,3 +133,44 @@
     /* border: 3px solid rgb(198, 12, 12); */
     background-color: rgba(228, 162, 134, 0.849);
   }
+
+  .custom-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    min-width: 100px;
+    margin: 5px;
+}
+
+.node-content.manager {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+.node-content.person {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+.p-tree .p-treenode-content {
+    padding: 0;
+    margin: 0;
+}
+
+.p-tree .p-treenode-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.p-tree {
+    margin-top: 20px;
+    width: 100%;
+}

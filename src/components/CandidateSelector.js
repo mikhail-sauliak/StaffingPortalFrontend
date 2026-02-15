@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Table, Spinner } from 'react-bootstrap'; // import spinner
-import { apiWithAuth } from '../utils/api.js'
+import { apiWithAuth } from '../utils/api.js';
 import '../styles/styles.css';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Checkbox, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, TextField, Box } from '@mui/material';
 
 const CandidateSelector = ({ project, onProjectUpdated }) => {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false); // add load state
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
- 
+
   useEffect(() => {
     setLoading(true);
     apiWithAuth.get('people')
@@ -26,26 +26,17 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
 
   const isSuitableCandidate = (candidate) => {
     const projectTechStackArray = project.techStack.split(', ');
-
     const techStackMatch = candidate.techStack && projectTechStackArray.some(tech => candidate.techStack.includes(tech));
     const levelMatch = candidate.level === project.level;
 
     const projectStartDate = new Date(project.startDate);
     const candidateAvailableFrom = new Date(candidate.availableFrom);
-
     const oneWeekAfterStart = new Date(projectStartDate);
     oneWeekAfterStart.setDate(projectStartDate.getDate() + 7);
 
     const availabilityMatch = candidate.isAvailable || (candidateAvailableFrom <= oneWeekAfterStart);
 
     return techStackMatch && levelMatch && availabilityMatch;
-  };  
-
-  const handleAddCandidate = (candidate) => {
-    if (!selectedCandidates.includes(candidate)) {
-      setSelectedCandidates([...selectedCandidates, candidate]);
-    }
-    setShowModal(false);
   };
 
   const handleSelectCandidate = (candidate) => {
@@ -87,68 +78,65 @@ const CandidateSelector = ({ project, onProjectUpdated }) => {
                 setErrors(error.response.data.errors);
             }
         });
-    };
-
+  };
 
   return (
     <div>
-      <textarea 
-        value={selectedCandidates.map(candidate => `${candidate.firstName} ${candidate.lastName}`).join('\n')} 
-        readOnly 
-        />
-      <Button onClick={() => {
-            console.log('Add Candidate Button Clicked!');
-            setShowModal(true);
-        }}>Add Candidate</Button>
-      
-      <Modal className="modal-custom" show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header className="modal-header-custom" closeButton>
-            <Modal.Title>Select a Candidate</Modal.Title>
-        </Modal.Header  >
-        <Modal.Body className="modal-body-custom">
-            {errors.Name && <p style={{color: 'red'}}>{errors.Name[0]}</p>} {/* error with Name */}
-            {errors.Level && <p style={{color: 'red'}}>{errors.Level[0]}</p>} {/* error with Level */}
-            {errors.Location && <p style={{color: 'red'}}>{errors.Location[0]}</p>} {/* error with Location */}
-            {errors.Stream && <p style={{color: 'red'}}>{errors.Stream[0]}</p>} {/* error with Stream */}
-            {errors.TechStack && <p style={{color: 'red'}}>{errors.TechStack[0]}</p>} {/* error with TechStack */}
-            {errors.Priority && <p style={{color: 'red'}}>{errors.Priority[0]}</p>} {/* error with Priority */}
-            {loading ? (
-            <div style={{ textAlign: 'center' }}>
-                <Spinner animation="border" role="status">
-                    <span className="sr-only">Loading...</span>
-                </Spinner>
-            </div>
-        ) : (
-            <>
-                <Table className="table-custom">
-                    <tbody>
-                        {candidates.map(candidate => (
-                            <tr key={candidate.id} style={isSuitableCandidate(candidate) ? { backgroundColor: '#dff0d8' } : {}}>
-                                <td>
-                                    <input 
-                                        type="checkbox" 
-                                        className="checkbox-custom"
-                                        onChange={() => handleSelectCandidate(candidate)} 
-                                        checked={selectedCandidates.includes(candidate)}
-                                    />
-                                </td>
-                                <td>{candidate.firstName}</td>
-                                <td>{candidate.lastName}</td>
-                                <td>{candidate.location}</td>
-                                <td>{candidate.stream}</td>
-                                <td>{candidate.techStack}</td>
-                                <td className="candidate-status">
-                                  {isSuitableCandidate(candidate) && <span>🌟 Suitable Candidate</span>}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-                <Button className="btn-custom" onClick={handleSaveCandidates}>Save Candidates</Button>
-            </>
-        )}
-    </Modal.Body>
-    </Modal>
+      <TextField
+        multiline
+        fullWidth
+        variant="outlined"
+        value={selectedCandidates.map(candidate => `${candidate.firstName} ${candidate.lastName}`).join('\n')}
+        InputProps={{ readOnly: true }}
+        sx={{ mb: 2 }}
+      />
+      <Button variant="contained" onClick={() => setShowModal(true)}>Add Candidate</Button>
+      <Dialog open={showModal} onClose={() => setShowModal(false)} fullWidth maxWidth="md">
+        <DialogTitle>Select a Candidate</DialogTitle>
+        <DialogContent dividers>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox"></TableCell>
+                  <TableCell>First Name</TableCell>
+                  <TableCell>Last Name</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell>Stream</TableCell>
+                  <TableCell>Tech Stack</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {candidates.map(candidate => (
+                  <TableRow key={candidate.id} sx={{ backgroundColor: isSuitableCandidate(candidate) ? '#dff0d8' : 'inherit' }}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedCandidates.includes(candidate)}
+                        onChange={() => handleSelectCandidate(candidate)}
+                      />
+                    </TableCell>
+                    <TableCell>{candidate.firstName}</TableCell>
+                    <TableCell>{candidate.lastName}</TableCell>
+                    <TableCell>{candidate.location}</TableCell>
+                    <TableCell>{candidate.stream}</TableCell>
+                    <TableCell>{candidate.techStack}</TableCell>
+                    <TableCell>{isSuitableCandidate(candidate) && <span>🌟 Suitable Candidate</span>}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowModal(false)}>Cancel</Button>
+          <Button onClick={handleSaveCandidates} variant="contained">Save Candidates</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

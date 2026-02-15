@@ -88,8 +88,8 @@ const ProposalTable = ({
                                         <TableCell>{proposal.currency}</TableCell>
                                         <TableCell>
                                             <Checkbox
-                                                checked={proposal.isSelected} // чекбокс, связанный с каждым предложением
-                                                onChange={() => handleSelectProposal(proposal.id)} // для выбора/снятия выбора предложения
+                                                checked={proposal.isSelected} 
+                                                onChange={() => handleSelectProposal(proposal.id)} 
                                             />
                                         </TableCell>
                                         </TableRow>

@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  frontend:
+    image: chuma13/frontend_sr:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: chuma13/backend_sr:latest
+    ports:
+      - "5000:80"
+    volumes:
+      - db-data:/app/Data
+volumes:
+  db-data:

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Snackbar, Button, Paper, TextField, TableHead, TableBody, TableContainer, Table } from '@mui/material';
 import { StyledHeaderCell, StyledTableCell, StyledTableRow } from '../../styles/Styles';
+import { exportToCsv } from './exportToCSV';
 import { apiWithAuth } from '../../utils/api';
 import axios from 'axios';
 
@@ -17,6 +18,7 @@ const SalaryPlanningComponent = () => {
     const [changedCells, setChangedCells] = useState({});
     const [activeTool, setActiveTool] = useState(null); // brush or eraser
     const [brushedCells, setBrushedCells] = useState({});
+    const [isImportMode, setIsImportMode] = useState(false);
 
     useEffect(() => {
         const loadCurrencyRates = async () => {
@@ -154,12 +156,12 @@ const SalaryPlanningComponent = () => {
     };
 
     const calculateMonthlyChangesInGBP = (monthlySums) => {
-        const changes = new Array(11).fill('-'); // на один меньше, так как для первого месяца нет предыдущего значения
+        const changes = new Array(11).fill('-'); 
 
         for (let i = 1; i < monthlySums.length; i++) {
-            if (monthlySums[i - 1] > 0) { // проверяем, чтобы избежать деления на ноль
+            if (monthlySums[i - 1] > 0) {
                 const change = ((monthlySums[i] - monthlySums[i - 1]) / monthlySums[i - 1]) * 100;
-                changes[i - 1] = change.toFixed(2) + '%'; //оставляем два знака после запятой и добавляем знак процента
+                changes[i - 1] = change.toFixed(2) + '%'; 
             }
         }
 
@@ -231,6 +233,14 @@ const SalaryPlanningComponent = () => {
                 style={{ marginBottom: '20px' }}
             >
                 Eraser
+            </Button>
+            <Button
+                variant="contained"
+                color="primary"
+                style={{ marginBottom: '20px' }}
+                onClick={() => exportToCsv(localData, processSalariesForYear, calculateTotalYearlySalary, currentYear)}
+            >
+                Export to CSV
             </Button>
             <TableContainer component={Paper}>
                 <Table aria-label="monthly salary table">

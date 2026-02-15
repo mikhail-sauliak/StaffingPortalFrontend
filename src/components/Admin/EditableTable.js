@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import useFetchManagers from '../hooks/useFetchManagers';
 import { levelOptions, streamOptions, techStackOptions } from '../hooks/selectOptions';
 import { StyledHeaderCell, StyledTableCell, StyledTableRow, DeleteButton } from '../../styles/Styles'
-import { Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Stack, ToggleButton, ToggleButtonGroup, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert, FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
 import { format } from 'date-fns';
+import OrganizationalChartComponent from './OrganizationalChartComponent';
 
 const EditableTable = ({
     people,
@@ -23,55 +24,117 @@ const EditableTable = ({
     formData,
     setFormData,
     setPeople,
-    handleTechStackChange
+    handleTechStackChange,
+    deletingPersonId, 
+    openDeleteDialog, 
+    dismissDate, 
+    openDismissDialog, 
+    setDeletingPersonId, 
+    setOpenDeleteDialog, 
+    setDismissDate, 
+    setOpenDismissDialog,
+    handleDismiss
 }) => {   
     const [divisionManagers, talentManagers, updateTalentManagersList] = useFetchManagers();    
-
+    
     const [openDialog, setOpenDialog] = useState(false);
-    const [deletingPersonId, setDeletingPersonId] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: '' });
-    const [selectedDivisionManagerId, setSelectedDivisionManagerId] = useState('');
-    const [selectedTalentManagerId, setSelectedTalentManagerId] = useState('');
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'chart'
+
+    const showSnackbar = (message, severity) => {
+        setSnackbar({ open: true, message, severity });
+    };
+
+    const handleViewModeChange = (event, newViewMode) => {
+        if (newViewMode !== null) {
+            setViewMode(newViewMode);
+        }
+    };
 
     const handleDivisionManagerChange = (event, personId) => {
-        const divisionManagerId = event.target.value;
+        const divisionManagerId = event.target.value;        
 
-        const updatedPeople = people.map(person => 
-                person.id === personId ? { ...person, divisionManagerId: divisionManagerId } : person
-            );
-        setPeople(updatedPeople);        
+        setPeople((prevPeople) => prevPeople.map((person) => 
+            person.id === personId ? { ...person, divisionManagerId: divisionManagerId } : person
+        ));
+
+        if (editablePersonId === personId) {
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                divisionManagerId: divisionManagerId
+            }));
+        }
+        
         updateTalentManagersList(divisionManagerId);
     };
 
     const handleDivisionManagerChangeNewEmployee = (event) => {
         const divisionManagerId = event.target.value;
-        
-        setSelectedDivisionManagerId(divisionManagerId);
-        
-        setFormData({ ...formData, divisionManagerId: divisionManagerId });
-        console.log(`Selected DM id is:${divisionManagerId}`)
+
+        setFormData(prev => ({
+            ...prev,
+            divisionManagerId: divisionManagerId,
+            talentManagerId: '',
+            talentManagerName: '',
+        }));
+
         updateTalentManagersList(divisionManagerId);
     };
     
+    // const handleTalentManagerChange = (event, personId) => {
+    //     const talentManagerId = event.target.value;
+
+    //     const updatedPeople = people.map(person => 
+    //         person.id === personId ? { ...person, talentManagerId: talentManagerId } : person
+    //     );
+    //     setPeople(updatedPeople);    
+        
+    //     if (editablePersonId === personId) {
+    //         setFormData(prevFormData => ({
+    //             ...prevFormData,
+    //             talentManagerId: talentManagerId
+    //         }));
+    //     }
+    // };
+
     const handleTalentManagerChange = (event, personId) => {
         const talentManagerId = event.target.value;
-        if (personId) {
-            // данные в массиве people для конкретного пользователя
-            const updatedPeople = people.map(person => 
-                person.id === personId ? { ...person, talentManagerId: talentManagerId } : person
-            );
-            setPeople(updatedPeople);
-        } else {
-        setSelectedTalentManagerId(talentManagerId);
-        setFormData({ ...formData, talentManagerId: talentManagerId });
+
+        const selectedManager = talentManagers.find(manager => manager.value === talentManagerId);
+
+        setPeople((prevPeople) => prevPeople.map((person) =>
+            person.id === personId ? {
+                ...person,
+                talentManagerId: talentManagerId,
+                talentManagerName: selectedManager ? selectedManager.label : "N/A"
+            } : person
+        ));
+        
+        if (editablePersonId === personId) {
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                talentManagerId: talentManagerId
+            }));
         }
     };
 
-    const handleTalentManagerChangeNewEmployee = (event, personId) => {
-        const talentManagerId = event.target.value;
+    // const handleTalentManagerChangeNewEmployee = (event, personId) => {
+    //     const talentManagerId = event.target.value;
         
-        setSelectedTalentManagerId(talentManagerId);
-        setFormData({ ...formData, talentManagerId: talentManagerId });        
+    //     setSelectedTalentManagerId(talentManagerId);
+    //     setFormData({ ...formData, talentManagerId: talentManagerId });        
+    // };
+
+    const handleTalentManagerChangeNewEmployee = (event) => {
+        const talentManagerId = event.target.value;    
+        
+        const selectedManager = talentManagers.find(manager => manager.value === talentManagerId);
+        
+        setFormData({ 
+            ...formData, 
+            talentManagerId: talentManagerId,
+            talentManagerName: selectedManager ? selectedManager.label : "N/A"
+        });        
     };
 
     const handleConfirmDeleteClick = (personId) => {
@@ -79,11 +142,80 @@ const EditableTable = ({
         setOpenDialog(true);
     };
 
+    const handleOpenDismissDialog = (personId) => {
+        setDeletingPersonId(personId);
+        setOpenDismissDialog(true);
+    };
+
+    const DismissDialog = ({ open, onClose, dismissDate, setDismissDate, onConfirm }) => (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>Dismiss Employee</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Please select the dismissal date for the employee.
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="dismissDate"
+                    label="Dismiss Date"
+                    type="date"
+                    fullWidth
+                    variant="outlined"
+                    value={dismissDate}
+                    onChange={(e) => setDismissDate(e.target.value)}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button
+                    onClick={async () => {
+                        try {
+                            await onConfirm();
+                            showSnackbar('Employee dismissed successfully', 'info');
+                        } catch (error) {
+                            showSnackbar('Failed to dismiss the employee. Please try again.', 'error');
+                        }
+                    }}
+                >
+                    Confirm
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+
     const handleDelete = async () => {
-        await apiWithAuth.delete(`people/${deletingPersonId}`);
-        fetchPeople();
-        setSnackbar({ open: true, message: 'Deleted successfully', severity: 'error' });
-        setOpenDialog(false);
+        try {
+            await apiWithAuth.delete(`administration/${deletingPersonId}`);
+            await fetchPeople();
+            setDeletingPersonId(null);
+            showSnackbar('Person deleted successfully', 'success');
+            setOpenDialog(false);
+        } catch (error) {
+            console.error('Error deleting person:', error);
+            showSnackbar('Failed to delete person. Please try again.', 'error');
+        }
+    };
+
+    const handleCreatePerson = async () => {
+        try {
+            await saveNewPerson();
+            showSnackbar('New person created successfully', 'success');
+        } catch (error) {
+            showSnackbar('Failed to create person. Please check the details and try again.', 'error');
+        }
+    };
+
+    const handleSavePerson = async (personId) => {
+        try {
+            await handleSaveChanges(personId);
+            showSnackbar('Person details updated successfully', 'success');
+        } catch (error) {
+            showSnackbar('Failed to update person details. Please try again.', 'error');
+        }
     };
 
     const renderLevelOptions = () => {
@@ -104,11 +236,32 @@ const EditableTable = ({
         ));
     };   
 
+    const handleUpdateManager = (updatedPeople) => {
+        setPeople(updatedPeople); 
+    };
+
         return (
+            <Box>
+                <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={handleViewModeChange}
+                aria-label="View Mode"
+            >
+                <ToggleButton value="table" aria-label="Table View">
+                    Table View
+                </ToggleButton>
+                <ToggleButton value="chart" aria-label="Organizational Chart">
+                    Organizational Chart
+                </ToggleButton>
+            </ToggleButtonGroup>
+            
+            {viewMode === 'table' ? (
             <TableContainer component={Paper}>
                 <Table sx={{ minWidth: 650 }} aria-label="editable table">
                     <TableHead>
                         <StyledTableRow>
+                            <StyledHeaderCell>ID</StyledHeaderCell>
                             <StyledHeaderCell>First Name</StyledHeaderCell>
                             <StyledHeaderCell>Last Name</StyledHeaderCell>
                             <StyledHeaderCell>Location</StyledHeaderCell>
@@ -126,6 +279,7 @@ const EditableTable = ({
                         {/* форма для создания новой записи */}
                         {isCreatingNewPerson && (
                             <StyledTableRow>
+                                <StyledTableCell component="th" scope="row">-</StyledTableCell>
                                 <StyledTableCell>
                                     <TextField size="small" name="firstName" value={formData.firstName} onChange={handleInputChange} />
                                 </StyledTableCell>
@@ -224,7 +378,7 @@ const EditableTable = ({
                                 </StyledTableCell>
                                 <StyledTableCell>
                                     <Stack direction="column" spacing={1}>
-                                        <Button variant="outlined" color="success" onClick={saveNewPerson} sx={{ mr: 1 }}>
+                                        <Button variant="outlined" color="success" onClick={handleCreatePerson} sx={{ mr: 1 }}>
                                             Save
                                         </Button>
                                         <Button variant="outlined" color="error" onClick={cancelCreatingNewPerson}>
@@ -235,8 +389,9 @@ const EditableTable = ({
                             </StyledTableRow>
                         )}
                         {/* отображение существующих записей */}
-                        {people.map((person) => (
+                        {people.map((person, index) => (
                             <StyledTableRow key={person.id}>
+                                <StyledTableCell component="th" scope="row">{index + 1}</StyledTableCell>
                                 {/* FirstName */}
                                 <StyledTableCell component="th" scope="row">
                                     {editablePersonId === person.id ? (
@@ -297,10 +452,9 @@ const EditableTable = ({
                                             </Select>
                                         </FormControl>
                                     ) : (
-                                        // имя менеджера, если не  редактируем
                                         divisionManagers.find(manager => manager.value === person.divisionManagerId)?.label || "N/A"
                                     )}
-                                </StyledTableCell>
+                                </StyledTableCell>                                
                                 {/* TalentManagerId */}
                                 <StyledTableCell>
                                     {editablePersonId === person.id ? (
@@ -319,8 +473,8 @@ const EditableTable = ({
                                             </Select>
                                         </FormControl>
                                     ) : (
-                                        //достаточно достать из массива имя, которое приходит от родителя                                        
-                                        person.talentManagerName
+                                        // Отображаем обновленное имя менеджера
+                                        person.talentManagerName || "N/A"
                                     )}
                                 </StyledTableCell>
                                 {/* AvailableFrom */}
@@ -420,7 +574,13 @@ const EditableTable = ({
                                         <Button
                                             variant="outlined"
                                             color="primary"
-                                            onClick={() => editablePersonId === person.id ? handleSaveChanges(person.id) : toggleEdit(person.id)}
+                                            onClick={() => {
+                                                if (editablePersonId === person.id) {
+                                                    handleSavePerson(person.id);
+                                                } else {
+                                                    toggleEdit(person.id);
+                                                }
+                                            }}
                                             sx={{ mr: 1 }}
                                         >
                                             {editablePersonId === person.id ? 'Save' : 'Edit'}
@@ -437,7 +597,7 @@ const EditableTable = ({
                                             <Button
                                                 variant="outlined"
                                                 color="error"
-                                                onClick={() => handleConfirmDeleteClick(person.id)}
+                                                onClick={() => handleOpenDismissDialog(person.id)}
                                             >
                                                 Delete
                                             </Button >
@@ -449,6 +609,13 @@ const EditableTable = ({
                         ))}
                     </TableBody>
                 </Table>
+                <DismissDialog
+                    open={openDismissDialog}
+                    onClose={() => setOpenDismissDialog(false)}
+                    dismissDate={dismissDate}
+                    setDismissDate={setDismissDate}
+                    onConfirm={handleDismiss}
+                />
                 <Dialog
                     open={openDialog}
                     onClose={() => setOpenDialog(false)}
@@ -470,7 +637,7 @@ const EditableTable = ({
                         </Button>
                     </DialogActions>
                 </Dialog>
-
+                <DismissDialog />
                 <Snackbar
                     open={snackbar.open}
                     autoHideDuration={6000}
@@ -481,6 +648,10 @@ const EditableTable = ({
                     </Alert>
                 </Snackbar>
             </TableContainer>
+            ) : (
+                <OrganizationalChartComponent people={people} onUpdateManager={handleUpdateManager} /> 
+            )}
+        </Box>
         );
     };
 

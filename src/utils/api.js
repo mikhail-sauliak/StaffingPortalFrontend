@@ -35,17 +35,29 @@ apiWithAuth.interceptors.request.use(
   );
   
   apiWithAuth.interceptors.response.use(
-      (response) => {
-          return response;
-      },
-      (error) => {
-          if (error.response && error.response.status === 401) {
-              console.error('Interceptor Response: Unauthorized, removing token');
-              localStorage.removeItem('token'); 
-              store.dispatch(logout());
-              toast.error("Your session has expired. Please log in again.");
-              store.dispatch(redirectToLogin());
-          }
-          return Promise.reject(error);
-      }
-  );
+    (response) => {
+        return response;
+    },
+    (error) => {
+        if (!error.response) {
+            console.error('Network or CORS error', error);
+            return Promise.reject(error);
+        }
+
+        if (error.response.status === 401) {
+            console.error('Interceptor Response: Unauthorized, removing token');
+            localStorage.removeItem('token'); 
+            store.dispatch(logout());
+            toast.error("Your session has expired. Please log in again.");
+            store.dispatch(redirectToLogin());
+        } else if (error.response.status === 403) {
+            console.warn('Forbidden access (403)', error);
+            toast.error('You do not have permission to perform this action.');
+        } else if (error.response.status === 404) {
+            console.warn('No data found (404)', error);
+        } else {
+            console.error('Interceptor Response Error:', error);
+        }
+        return Promise.reject(error);
+    }
+);

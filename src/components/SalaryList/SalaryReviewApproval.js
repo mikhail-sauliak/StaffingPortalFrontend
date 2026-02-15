@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { apiWithAuth } from '../utils/api.js';
-import getUserRoleFromToken from './hooks/getUserRole.js';
+import { apiWithAuth } from '../../utils/api.js';
+import getUserRoleFromToken from '../hooks/getUserRole.js';
 import { format } from 'date-fns';
 import { Container, Box, TableCell, Paper, Table, TableBody, Checkbox, TableHead, Button, TextField, MenuItem, FormControl, Select, InputLabel } from '@mui/material';
-import { StyledTableCell, StyledHeaderCell, StyledTableContainer, StyledTableRow } from '../styles/Styles.js';
+import { StyledTableCell, StyledHeaderCell, StyledTableContainer, StyledTableRow } from '../../styles/Styles.js';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { Snackbar, Alert } from '@mui/material';
-import MonthYearPicker from '../utils/MonthYearPicker.js';
+import MonthYearPicker from '../../utils/MonthYearPicker.js';
 
 const SalaryReviewApproval = () => {
   const [requests, setRequests] = useState([]);
@@ -64,81 +64,125 @@ const SalaryReviewApproval = () => {
     });
   };
 
-  const handleSave = async (requestId) => {
-    const updatedFields = editedFields[requestId];
-    for (let id of selected) {
-    try {
-        const foundRequest = requests.find(r => r.id === id);
-        if (!foundRequest) {
-            console.error('Request not found');
-            handleSnackbarOpen('Request not found', 'error');
-            return;
+  const handleSave = async () => {
+    for (let requestId of selected) {
+        const updatedFields = editedFields[requestId];
+        try {
+            const foundRequest = requests.find(r => r.id === requestId);
+            if (!foundRequest) {
+                console.error('Request not found');
+                handleSnackbarOpen('Request not found', 'error');
+                continue; 
+            }
+
+            const payload = {
+                Currency: updatedFields.currency || foundRequest.currency,
+                ContractType: updatedFields.contractType || foundRequest.contractType,
+                NewSalaryStartDate: updatedFields.newSalaryStartDate || foundRequest.newSalaryStartDate,
+                SalaryReceivedDate: updatedFields.salaryReceivedDate || foundRequest.salaryReceivedDate,
+                ProposedSalary: updatedFields.proposedSalary || foundRequest.proposedSalary,
+                OldSalary: updatedFields.oldSalary || foundRequest.oldSalary,
+                DivisionManagerComments: updatedFields.divisionManagerComments || "Saved changes in salary request",
+            };
+
+            await apiWithAuth.patch(`salaryreviewrequests/${requestId}/updateFields`, payload);
+            handleSnackbarOpen('Successfully saved the updated fields for request ' + requestId, 'success');
+        } catch (error) {
+            console.error('Error saving the updated fields for request ' + requestId + ':', error);
+            handleSnackbarOpen('Error saving the updated fields for request ' + requestId, 'error');
         }
-
-        const payload = {
-            Currency: updatedFields.currency || foundRequest.currency,
-            ContractType: updatedFields.contractType || foundRequest.contractType,
-            NewSalaryStartDate: updatedFields.newSalaryStartDate || foundRequest.newSalaryStartDate,
-            SalaryReceivedDate: updatedFields.salaryReceivedDate || foundRequest.salaryReceivedDate,
-            ProposedSalary: updatedFields.proposedSalary || foundRequest.proposedSalary,
-            OldSalary: updatedFields.oldSalary || foundRequest.oldSalary,
-            DivisionManagerComments: updatedFields.divisionManagerComments ? foundRequest.divisionManagerComments : "Saved changes in salary request",
-        };
-
-        await apiWithAuth.patch(`salaryreviewrequests/${requestId}/updateFields`, payload);
-        fetchRequests();  // refresh the list after save
-        handleSnackbarOpen('Successfully saved the updated fields', 'success');
-    } catch (error) {
-        console.error('Error saving the updated fields:', error);
-        handleSnackbarOpen('Error saving the updated fields', 'error');
     }
-  }
+    fetchRequests(); 
 };
 
 
+  // const handleBulkAction = async (actionType) => {
+  //   let successCount = 0;
+  //   for (let id of selected) {
+  //     try {
+  //       const requestToApprove = requests.find(r => r.id === id);
+  //       const editedRequest = editedFields[id];
+  //       const formattedDate = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx");
+
+  //       let payload = {};
+  //       if (actionType === 'approve' || actionType === 'approveByDM') {          
+  //         // для approve и approveByDM формируем одинаковый payload
+  //         payload = {
+  //           Currency: editedRequest.currency,
+  //           ContractType: editedRequest.contractType,
+  //           ReviewDate: formattedDate,
+  //           NewSalary: editedRequest.proposedSalary,
+  //           OldSalary: editedRequest.oldSalary,
+  //           NewSalaryStartDate: requestToApprove.newSalaryStartDate,
+  //           SalaryReceivedDate: requestToApprove.salaryReceivedDate,
+  //           TalentManagerComments: requestToApprove.talentManagerComments,
+  //           DivisionManagerComments: editedRequest.divisionManagerComments,
+  //           Status: "Approved",
+  //           Justification: requestToApprove.justification
+  //         };
+  //       } else if (actionType === 'decline') {
+  //         payload = {
+  //             Comments: editedRequest.divisionManagerComments ? editedRequest.divisionManagerComments : 'Declined'
+  //         };
+  //     }
+  //       console.log(`Sending ${actionType} request for ID: ${id}`);
+  //       await apiWithAuth.patch(`salaryreviewrequests/${id}/${actionType}`, payload);
+  //       successCount++;
+  //     } catch (error) {
+  //       console.error(`Error processing ${actionType} action for ID ${id}:`, error);
+  //       handleSnackbarOpen(`Error processing ${actionType} action for ID ${id}`, 'error');
+  //       return; 
+  //     }
+  //   }
+  //   if (successCount === selected.length) {
+  //     handleSnackbarOpen(`Successfully processed ${actionType} action for selected items.`, 'success');
+  //   }
+  //   fetchRequests();
+  // };
   const handleBulkAction = async (actionType) => {
     let successCount = 0;
     for (let id of selected) {
       try {
         const requestToApprove = requests.find(r => r.id === id);
         const editedRequest = editedFields[id];
-        const formattedDate = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx");
-
+        const formattedDate = format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx");  
+        
         let payload = {};
-        if (actionType === 'approve' || actionType === 'approveByDM') {          
-          // для approve и approveByDM формируем одинаковый payload
+        if (actionType === 'approve' || actionType === 'approveByDM') {
           payload = {
-            Currency: editedRequest.currency,
-            ContractType: editedRequest.contractType,
+            Currency: editedRequest.currency || requestToApprove.currency,
+            ContractType: editedRequest.contractType || requestToApprove.contractType,
             ReviewDate: formattedDate,
-            NewSalary: editedRequest.proposedSalary,
-            OldSalary: editedRequest.oldSalary,
-            NewSalaryStartDate: requestToApprove.newSalaryStartDate,
-            SalaryReceivedDate: requestToApprove.salaryReceivedDate,
-            TalentManagerComments: requestToApprove.talentManagerComments,
-            DivisionManagerComments: editedRequest.divisionManagerComments,
+            NewSalary: editedRequest.proposedSalary || requestToApprove.newSalary,
+            OldSalary: editedRequest.oldSalary || requestToApprove.oldSalary,
+            NewSalaryStartDate: editedRequest.newSalaryStartDate || requestToApprove.newSalaryStartDate,
+            SalaryReceivedDate: editedRequest.salaryReceivedDate || requestToApprove.salaryReceivedDate,
+            TalentManagerComments: editedRequest.talentManagerComments || requestToApprove.talentManagerComments,
+            DivisionManagerComments: editedRequest.divisionManagerComments || requestToApprove.divisionManagerComments,
             Status: "Approved",
-            Justification: requestToApprove.justification
+            Justification: editedRequest.justification || requestToApprove.justification,
           };
         } else if (actionType === 'decline') {
           payload = {
-              ManagerComments: editedRequest.divisionManagerComments ? editedRequest.divisionManagerComments : 'Declined'
+            Comments: editedRequest.divisionManagerComments || 'Declined',
           };
-      }
+        }
+  
         console.log(`Sending ${actionType} request for ID: ${id}`);
         await apiWithAuth.patch(`salaryreviewrequests/${id}/${actionType}`, payload);
         successCount++;
       } catch (error) {
         console.error(`Error processing ${actionType} action for ID ${id}:`, error);
         handleSnackbarOpen(`Error processing ${actionType} action for ID ${id}`, 'error');
-        return; // Прерываем цикл после первой же ошибки
+        return;
       }
     }
     if (successCount === selected.length) {
       handleSnackbarOpen(`Successfully processed ${actionType} action for selected items.`, 'success');
     }
-    fetchRequests(); // обновляем данные после обработки действий
+    fetchRequests();
   };
+  
 
   const handleSelect = (id) => {
     const selectedIndex = selected.indexOf(id);

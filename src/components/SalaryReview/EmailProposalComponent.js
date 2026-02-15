@@ -1,4 +1,5 @@
 import React from 'react';
+import { apiWithAuth } from '../../utils/api';
 import { Modal, Button, Box, Typography, TableRow, TableContainer, Paper, Table, TableHead, TableBody } from '@mui/material';
 import { StyledTableCell } from '../../styles/Styles';
 
@@ -15,7 +16,56 @@ function copyToClipboard(elementId) {
   }
 
 function EmailProposalComponent({ proposals, selectedProposals, isModalOpen, onCloseModal }) {
- 
+    const handleSendReview = async () => {
+        const selectedData = Array.isArray(proposals)
+            ? proposals.filter(proposal => selectedProposals.includes(proposal.id))
+            : [];
+        console.log("selected data is: ", selectedData);
+    
+        if (selectedData.length === 0) {
+            console.error('No reviews selected');
+            return;
+        }
+    
+        for (const review of selectedData) {
+            const oldSalaryMatch = review.currentSalary.match(/(\d+)/);
+            const currencyMatch = review.currentSalary.match(/\(([^)]+)\)/);
+
+            const newSalaryMatch = review.salaryChange.match(/\)\s*(\d+)/);
+    
+            const oldSalary = oldSalaryMatch ? parseFloat(oldSalaryMatch[1]) : null;
+            const newSalary = newSalaryMatch ? parseFloat(newSalaryMatch[1]) : null;
+            const currency = currencyMatch ? currencyMatch[1] : '';
+            const effectiveFrom = review.effectiveFrom.split('/').reverse().join('-') + '-01'; // MM/yyyy -> yyyy-MM-01
+            const whenReceived = review.whenReceived.split('/').reverse().join('-') + '-01'; // MM/yyyy -> yyyy-MM-01
+    
+            const data = {
+                personId: review.id,
+                justification: "Annual", 
+                newSalaryStartDate: effectiveFrom,
+                salaryReceivedDate: whenReceived,
+                talentManagerComments: review.reasonForReview,
+                currency: currency,
+                oldSalary: oldSalary,
+                newSalary: newSalary,
+                contractType: review.typeOfContract,
+                status: "Pending"
+            };
+    
+            try {
+                await apiWithAuth.post('salaryreviewrequests', data);                
+            } catch (error) {
+                console.error('Error sending review request:', error);
+                alert('Failed to send review request');                
+                return;
+            }
+        }
+    
+        alert('All selected review requests sent successfully');
+        onCloseModal();
+    };
+    
+
       const renderModalContent = () => {
         
         const selectedData = Array.isArray(proposals)
@@ -27,6 +77,7 @@ function EmailProposalComponent({ proposals, selectedProposals, isModalOpen, onC
                 <Typography variant="h6" gutterBottom>
                     Copy and Paste the following table into your email:
                 </Typography>
+                <Button onClick={handleSendReview} sx={{ marginTop: 2 }}>Send Reviews to Head</Button>
                 <Button onClick={() => copyToClipboard('table-1')}>Copy Table</Button>
                 <TableContainer component={Paper} id="table-1">
                     <Table aria-label="customized table">

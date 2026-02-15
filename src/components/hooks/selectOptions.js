@@ -29,3 +29,10 @@ export const levelOptions = [
     { value: 'Lead+', label: 'Lead+' },
     { value: 'Principal', label: 'Principal' },
 ];
+
+export const userRoleOptions = [
+    { value: 'TalentManager', label: 'Talent Manager' },
+    { value: 'DivisionManager', label: 'Division Manager' },
+    { value: 'DeputyHead', label: 'Deputy Head' },
+    { value: 'Head', label: 'Head' },
+];

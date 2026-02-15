@@ -18,6 +18,7 @@ const AssignManagerRole = () => {
     const [role, setRole] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         fetchPeople();
@@ -25,8 +26,10 @@ const AssignManagerRole = () => {
 
     const fetchPeople = async () => {
         try {
-            const response = await apiWithAuth.get('people');
-            setPeople(response.data.$values);
+            const response = await apiWithAuth.get('administration');
+            const payload = response.data;
+            const collection = Array.isArray(payload) ? payload : payload?.$values ?? [];
+            setPeople(collection);
         } catch (error) {
             console.error('Failed to fetch people', error);
             setError('Failed to fetch people.');
@@ -41,35 +44,43 @@ const AssignManagerRole = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setError('');
+        setSuccessMessage('');
         if (!selectedPerson || !role) {
             setError('Please select a person and a role.');
             return;
         }
 
-        const divisionManager = people.find(manager => manager.id === selectedPerson.divisionManagerId);
-        console.log("divisionManager = ", divisionManager);
-        const managedByName = divisionManager ? `${divisionManager.firstName} ${divisionManager.lastName}` : '';
-        console.log("managedByName = ", managedByName);
+        if (!selectedPerson.managerPersonId) {
+            setError('Selected person does not have a manager assigned in the hierarchy.');
+            return;
+        }
+
+        const managedByName = selectedPerson.managerFullName || '';
+
+        setIsSubmitting(true);
 
         try {
-            // Подготовка объекта userDto с необходимыми полями
             const userDto = {
-                Username: `${selectedPerson.firstName}${selectedPerson.lastName}`,
+                Username: `${selectedPerson.firstName}${selectedPerson.lastName}`.replace(/\s+/g, ''),
                 Role: role,
                 Stream: selectedPerson.stream,
-                Division: selectedPerson.stream, 
-                Password: 'Test1234', 
-                ManagedBy: managedByName, 
+                Division: selectedPerson.stream,
+                Password: 'Test1234!',
+                ManagedBy: managedByName,
                 PersonId: selectedPerson.id,
+                ManagerId: selectedPerson.managerPersonId,
             };
-    
-            await apiWithAuth.post('User/create', userDto);
+
+            await apiWithAuth.post('user/create', userDto);
             setSuccessMessage('Manager role assigned successfully!');
             setSelectedPerson(null);
             setRole('');
         } catch (error) {
             console.error('There was an error assigning the manager role', error);
-            setError('Failed to assign the manager role.', error);
+            setError('Failed to assign the manager role.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -118,7 +129,9 @@ const AssignManagerRole = () => {
                                 </option>
                             ))}
                         </TextField>
-                        <Button type="submit" variant="contained" sx={{ mt: 2 }}>Assign Role</Button>
+                        <Button type="submit" variant="contained" sx={{ mt: 2 }} disabled={isSubmitting}>
+                            {isSubmitting ? 'Assigning...' : 'Assign Role'}
+                        </Button>
                     </form>
                 </Grid>
             </Grid>

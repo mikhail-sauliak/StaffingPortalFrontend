@@ -44,7 +44,7 @@ const SalaryForecastComponent = ({ monthlyForecasts, currentMonth, yearlyMultipl
     }
 
     let salaryDifferences = forecastedSalaries.map((salary, index, arr) => {
-        if (index === 0) return 0; // для первого месяца нет предыдущего значения, возвращаем 0 или null
+        if (index === 0) return 0;
         return salary - arr[index - 1];
       });
     setMonthlySalaryDifferences(salaryDifferences);

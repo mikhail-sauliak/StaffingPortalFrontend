@@ -1,144 +1,228 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Alert, Autocomplete, Container, Box, Grid, Button, Typography, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 import { techStackOptions, streamOptions, levelOptions } from '../hooks/selectOptions.js';
 import { apiWithAuth } from '../../utils/api.js';
 import '../../styles/styles.css';
 import AssignManagerRole from './AssignManagerRole';
 
-const CreateManager = () => {
-    const [newManager, setNewManager] = useState({
-        firstName: '',
-        lastName: '',
-        location: '',
-        divisionManagerId: null,
-        talentManagerId: null,
-        availableFrom: '',
-        techStack: '',
-        stream: '',
-        level: '',
-        role: ''
+const normalizeCollection = (payload) => {
+    if (!payload) {
+        return [];
+    }
+
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (payload.$values) {
+        return payload.$values;
+    }
+
+    return [];
+};
+
+const extractManagerNameById = (managers, personId) => {
+    if (!personId) {
+        return '';
+    }
+
+    const manager = managers.find((item) => Number(item.personId ?? item.value) === Number(personId));
+    if (!manager) {
+        return '';
+    }
+
+    if (manager.username) {
+        return manager.username.replace(/([A-Z])/g, ' $1').trim();
+    }
+
+    return manager.label ?? manager.fullName ?? '';
+};
+
+const isFormValid = (manager, managerIdForUser) => {
+    const requiredFields = ['firstName', 'lastName', 'location', 'availableFrom', 'stream', 'level', 'role'];
+
+    const hasRequiredStrings = requiredFields.every((field) => {
+        const value = manager[field];
+        return typeof value === 'string' && value.trim().length > 0;
     });
 
+    if (!hasRequiredStrings) {
+        return false;
+    }
+
+    if (!manager.divisionManagerId || !manager.talentManagerId) {
+        return false;
+    }
+
+    if (!Array.isArray(manager.techStack) || manager.techStack.length === 0) {
+        return false;
+    }
+
+    if (!managerIdForUser) {
+        return false;
+    }
+
+    return true;
+};
+
+const CreateManager = () => {
+    const [newManager, setNewManager] = useState(initialManagerState);
     const [divisionManagers, setDivisionManagers] = useState([]);
     const [talentManagers, setTalentManagers] = useState([]);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [submitted, setSubmitted] = useState(false);
-    const [viewMode, setViewMode] = useState('create'); // 'create' или 'assign'
+    const [isLoading, setIsLoading] = useState(false);
+    const [viewMode, setViewMode] = useState('create');
+
+    const normalizedDivisionManagers = useMemo(
+        () => normalizeCollection(divisionManagers),
+        [divisionManagers]
+    );
+
+    const normalizedTalentManagers = useMemo(
+        () => normalizeCollection(talentManagers),
+        [talentManagers]
+    );
+
     const handleViewModeChange = (mode) => {
         setViewMode(mode);
     };
 
     useEffect(() => {
-        fetchManagers();
+        const loadManagers = async () => {
+            try {
+                const [divisionManagersResponse, talentManagersResponse] = await Promise.all([
+                    apiWithAuth.get('administration/division-managers'),
+                    apiWithAuth.get('administration/talent-managers'),
+                ]);
+
+                setDivisionManagers(normalizeCollection(divisionManagersResponse.data));
+                setTalentManagers(normalizeCollection(talentManagersResponse.data));
+            } catch (fetchError) {
+                console.error('There was an error fetching managers!', fetchError);
+                setError('Failed to fetch managers.');
+            }
+        };
+
+        loadManagers();
     }, []);
 
-    const fetchManagers = async () => {
+    const updateTalentManagersList = async (divisionManagerId) => {
+        if (!divisionManagerId) {
+            return;
+        }
+
         try {
-            const divisionManagersResponse = await apiWithAuth.get('administration/division-managers');
-            setDivisionManagers(divisionManagersResponse.data.$values); 
-        
-            const talentManagersResponse = await apiWithAuth.get('administration/talent-managers');
-            setTalentManagers(talentManagersResponse.data.$values);
-        } catch (error) {
-            console.error('There was an error fetching managers!', error);
-            setError('Failed to fetch managers.');
+            const response = await apiWithAuth.get(`administration/division-manager/${divisionManagerId}/talent-managers`);
+            const scopedTalentManagers = normalizeCollection(response.data).map((manager) => ({
+                ...manager,
+                value: manager.personId ?? manager.value,
+            }));
+
+            setTalentManagers(scopedTalentManagers);
+        } catch (fetchError) {
+            console.error('Error fetching managed talent managers:', fetchError);
+            setError('Failed to fetch talent managers for the selected division manager.');
         }
     };
 
-    const updateTalentManagersList = (divisionManagerId) => {
-        console.log('Updating talent managers for division manager ID:', divisionManagerId); 
-        apiWithAuth.get(`administration/division-manager/${divisionManagerId}/talent-managers`)
-            .then(response => {
-                setTalentManagers(response.data.$values); 
-            })
-            .catch(error => {
-                console.error('Error fetching managed talent managers:', error);
-                setError('Failed to fetch talent managers for the selected division manager.');
-            });        
-    };
-
-    function splitUsername(username) {
-        const splitName = username.replace(/([A-Z])/g, ' $1').trim();
-        const nameParts = splitName.split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.slice(1).join(' ');
-        return { firstName, lastName };
-      }
-
-    const handleTechStackChange = (event, newValue) => {
-        setNewManager({ ...newManager, techStack: newValue.map((item) => item.label) });
-    };
-
-    const handleStreamChange = (selectedOption) => {
-        setNewManager({ ...newManager, stream: selectedOption.value });
-    };
-
-    const handleLevelChange = (selectedOption) => {
-        setNewManager({ ...newManager, level: selectedOption.value });
+    const handleTechStackChange = (_, newValue) => {
+        setNewManager((prevState) => ({
+            ...prevState,
+            techStack: newValue.map((item) => item.label ?? item.value ?? item),
+        }));
     };
 
     const handleFormChange = (event) => {
         const { name, value } = event.target;
-        console.log(`Handling form change for ${name} with value ${value}`);
-        console.log('Current manager state before update:', newManager);
-    
-        setNewManager(prevState => {
-            const updatedManager = { ...prevState, [name]: value };
-            console.log('Updated manager state:', updatedManager);
-            return updatedManager;
-        });
+        const parsedValue = name.endsWith('Id') ? (value === '' ? null : Number(value)) : value;
 
-        if (name === 'divisionManagerId') {
-            console.log('Updating talent managers list for division manager ID:', value);
-            updateTalentManagersList(value);
+        setNewManager((prevState) => ({
+            ...prevState,
+            [name]: parsedValue,
+        }));
+
+        if (name === 'divisionManagerId' && parsedValue) {
+            updateTalentManagersList(parsedValue);
         }
     };
+
+    const managerIdForUser = useMemo(() => {
+        if (newManager.role === 'Talent Manager') {
+            return Number(newManager.divisionManagerId);
+        }
+
+        if (newManager.role === 'Division Manager') {
+            return Number(newManager.divisionManagerId);
+        }
+
+        if (newManager.role) {
+            return Number(newManager.talentManagerId || newManager.divisionManagerId);
+        }
+
+        return null;
+    }, [newManager]);
 
     const handleFormSubmit = async (event) => {
         event.preventDefault();
         setSubmitted(true);
-        console.log('Submitting form with data:', newManager);
 
-        if (!isFormValid()) {
+        if (!isFormValid(newManager, managerIdForUser)) {
             setError('Please fill in all required fields.');
             return;
         }
 
         setError(null);
-        try {
-            // Create a new Person
-            const personData = {
-                ...newManager,
-                TMAware: 'Not',
-                Division: newManager.stream,
-            };
-            const response = await apiWithAuth.post('people', personData);
-            const createdPerson = response.data;
+        setIsLoading(true);
 
-            // Create a new User
-            const username = `${newManager.firstName}${newManager.lastName}`;
-            const userDto = {
+        try {
+            const personPayload = {
+                firstName: newManager.firstName.trim(),
+                lastName: newManager.lastName.trim(),
+                location: newManager.location.trim(),
+                divisionManagerId: Number(newManager.divisionManagerId),
+                talentManagerId: Number(newManager.talentManagerId),
+                availableFrom: newManager.availableFrom,
+                techStack: Array.isArray(newManager.techStack) ? newManager.techStack.join(', ') : newManager.techStack,
+                comments: newManager.comments ?? '',
+                stream: newManager.stream,
+                tMAware: newManager.tMAware ?? 'Not',
+                level: newManager.level,
+                assignmentExistsInGCP: Boolean(newManager.assignmentExistsInGCP),
+                plannedAssignment: newManager.plannedAssignment ?? '',
+                userId: null,
+                headId: null,
+                deputyHeadId: null,
+            };
+
+            const personResponse = await apiWithAuth.post('administration', personPayload);
+            const createdPerson = personResponse.data;
+
+            const username = `${newManager.firstName}${newManager.lastName}`.replace(/\s+/g, '');
+            const managerName = extractManagerNameById([...normalizedDivisionManagers, ...normalizedTalentManagers], managerIdForUser);
+
+            const userPayload = {
                 Username: username,
                 Role: newManager.role,
                 Stream: newManager.stream,
-                PersonId: createdPerson.id,
-                Password: 'Test1234',  // Default password
-                Division: createdPerson.stream,
-                ManagedBy: newManager.talentManagerId,
-
+                PersonId: createdPerson?.id ?? createdPerson?.Id,
+                Password: 'Test1234!',
+                Division: newManager.stream,
+                ManagedBy: managerName,
+                ManagerId: managerIdForUser,
             };
-            await apiWithAuth.post('User/create', userDto);
+
+            await apiWithAuth.post('user/create', userPayload);
             setSuccessMessage('User created successfully!');
             setNewManager(initialManagerState);
             setSubmitted(false);
-        } catch (error) {
+        } catch (creationError) {
+            console.error('There was an error creating the user!', creationError);
             setError('There was an error creating the user!');
+        } finally {
+            setIsLoading(false);
         }
-    };
-
-    const isFormValid = () => {
-        return Object.values(newManager).every(value => value);
     };
 
     return (
@@ -190,13 +274,17 @@ const CreateManager = () => {
                                         <MenuItem value="">
                                             <em>None</em>
                                         </MenuItem>
-                                        {divisionManagers && divisionManagers.map(manager => {
-                                            const { firstName, lastName } = splitUsername(manager.username);
+                                        {normalizedDivisionManagers.map((manager) => {
+                                            const personId = manager.personId ?? manager.value ?? manager.id;
+                                            const username = manager.username ?? manager.label ?? manager.fullName ?? '';
+                                            const displayName = username.replace(/([A-Z])/g, ' $1').trim();
+
                                             return (
-                                            <MenuItem key={manager.id} value={manager.id}>
-                                                {`${firstName} ${lastName}`}
-                                            </MenuItem>
-                                        )})}
+                                                <MenuItem key={personId} value={personId}>
+                                                    {displayName}
+                                                </MenuItem>
+                                            );
+                                        })}
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -215,13 +303,17 @@ const CreateManager = () => {
                                         <MenuItem value="">
                                             <em>None</em>
                                         </MenuItem>
-                                        {talentManagers && talentManagers.map(manager => {
-                                            const { firstName, lastName } = splitUsername(manager.username);
+                                        {normalizedTalentManagers.map((manager) => {
+                                            const personId = manager.personId ?? manager.value;
+                                            const username = manager.username ?? manager.label ?? manager.fullName ?? '';
+                                            const displayName = username.replace(/([A-Z])/g, ' $1').trim();
+
                                             return (
-                                            <MenuItem key={manager.id} value={manager.id}>
-                                                 {`${firstName} ${lastName}`}
-                                            </MenuItem>
-                                        )})}
+                                                <MenuItem key={personId} value={personId}>
+                                                    {displayName}
+                                                </MenuItem>
+                                            );
+                                        })}
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -261,7 +353,7 @@ const CreateManager = () => {
                                         value={newManager.stream}
                                         label="Stream"
                                         name="stream"
-                                        onChange={handleStreamChange}
+                                        onChange={handleFormChange}
                                     >
                                         {streamOptions.map((option) => (
                                             <MenuItem key={option.value} value={option.value}>
@@ -280,7 +372,7 @@ const CreateManager = () => {
                                         value={newManager.level}
                                         label="Level"
                                         name="level"
-                                        onChange={handleLevelChange}
+                                        onChange={handleFormChange}
                                     >
                                         {levelOptions.map((option) => (
                                             <MenuItem key={option.value} value={option.value}>
@@ -306,8 +398,8 @@ const CreateManager = () => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Button variant="primary" type="submit" className="mt-3">
-                                        Submit
+                            <Button variant="contained" color="primary" type="submit" className="mt-3" disabled={isLoading}>
+                                        {isLoading ? 'Submitting...' : 'Submit'}
                             </Button>
                             </Grid>
                             </Box>
@@ -332,10 +424,14 @@ const initialManagerState = {
     divisionManagerId: null,
     talentManagerId: null,
     availableFrom: '',
-    techStack: '',
+    techStack: [],
     stream: '',
     level: '',
-    role: ''
+    role: '',
+    comments: '',
+    plannedAssignment: '',
+    assignmentExistsInGCP: false,
+    tMAware: 'Not',
 };
 
 export default CreateManager;

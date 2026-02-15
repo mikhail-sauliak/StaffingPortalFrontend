@@ -1,234 +1,334 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiWithAuth } from '../../utils/api.js';
-import { Container, Box, Tab, Tabs, Button } from '@mui/material';
+import { Container, Box, Button, FormControlLabel, Switch, Stack } from '@mui/material';
 import CSVReader from '../ranges/CSVReader.js';
 import EditableTable from './EditableTable.js';
 import CreateManager from './CreateManager.js';
 import getUserRoleFromToken from '../hooks/getUserRole.js';
 import SalaryStatistics from './SalaryStatistics.js';
-import SalaryReviewsHistory from './SalaryReviewsHistory.js'
-import SalaryReviewTab from './SalaryReviewTab.js'
-import SalaryPlanningComponent from '../Planning/SalaryPlanningComponent.js';
+import SalaryReviewsHistory from '../PersonalPage/SalaryReviewsHistory.js';
+import SalaryReviewTab from './SalaryReviewTab.js';
+import SalaryPlanningComponentTest from '../Planning/SalaryPlanningComponentTest.js';
 import FileUpload from '../../utils/FileUpload.js';
 import FileUploader from '../../utils/FileUploader.js';
+import { TabsTwitter } from '../../mui-treasury/tabs-twitter/TabsTwitter.tsx';
 import { AdjustmentSettingsProvider } from '../SalaryReview/AdjustmentSettingsContext.js';
 
-const AdminPanel = (initialState) => {
+const normalizeCollection = (payload) => {
+    if (!payload) {
+        return [];
+    }
+
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (payload.$values) {
+        return payload.$values;
+    }
+
+    return [];
+};
+
+const buildEmptyFormState = (seed = {}) => ({
+    ...seed,
+    id: '',
+    firstName: '',
+    lastName: '',
+    location: '',
+    divisionManagerId: '',
+    talentManagerId: '',
+    availableFrom: '',
+    tMAware: 'Yes',
+    techStack: [],
+    plannedAssignment: '',
+    stream: '',
+    level: '',
+    role: '',
+    assignmentExistsInGCP: false,
+    comments: '',
+    userId: null,
+});
+
+const AdminPanel = (initialState = {}) => {
     const [activeTab, setActiveTab] = useState('People');
     const [people, setPeople] = useState([]);
     const [editablePersonId, setEditablePersonId] = useState(null);
     const userRole = getUserRoleFromToken();
+    const hasAccess = userRole === 'Head' || userRole === 'DeputyHead' || userRole === 'DivisionManager';
     const [isCreatingNewPerson, setIsCreatingNewPerson] = useState(false);
-    const [selectedDivisionManager, setSelectedDivisionManager] = useState(null);
-    const [talentManagers, setTalentManagers] = useState([]);
-    const [formData, setFormData] = useState({
-        ...initialState,
-        id: '',
-        firstName: '',
-        lastName: '',
-        location: '',
-        divisionManagerId: '',
-        talentManagerId: '',
-        availableFrom: '',
-        tMAware: 'Yes',
-        techStack: [],
-        plannedAssignment: [],
-        stream: '',
-        level: '',
-        role: '',
-        talentManagerId: '',
-        divisionManagerId: '',
-        assignmentExistsInGCP: false
-    });
+    const [formData, setFormData] = useState(() => buildEmptyFormState(initialState));
+    const [deletingPersonId, setDeletingPersonId] = useState(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [dismissDate, setDismissDate] = useState('');
+    const [openDismissDialog, setOpenDismissDialog] = useState(false);
+    const [showActiveOnlyPeople, setShowActiveOnlyPeople] = useState(true);
+
+    const fetchPeople = useCallback(async () => {
+        if (!hasAccess) {
+            setPeople([]);
+            return;
+        }
+
+        try {
+            const response = await apiWithAuth.get('administration');
+            const collection = normalizeCollection(response.data);
+            const updatedPeople = collection.map((person) => ({
+                ...person,
+                divisionManagerId: person.divisionManagerId ?? person.divisionManager?.id ?? null,
+                divisionManagerName: person.divisionManager?.fullName ?? '',
+                talentManagerId: person.talentManagerId ?? person.talentManager?.id ?? null,
+                talentManagerName: person.talentManager?.fullName ?? '',
+                techStack: person.techStack ?? '',
+                isDismissed: person.isDismissed ?? false,
+                endDate: person.endDate ?? null,
+            }));
+
+            setPeople(updatedPeople);
+        } catch (error) {
+            console.error('There was an error fetching administration data!', error);
+        }
+    }, [hasAccess]);
 
     useEffect(() => {
         fetchPeople();
-    }, [userRole]);
+    }, [fetchPeople]);
 
-    const fetchPeople = () => {
-        Promise.all([
-            apiWithAuth.get('people'),
-            apiWithAuth.get('user')
-        ])
-            .then(([peopleResponse, usersResponse]) => {
-                const peopleData = peopleResponse.data.$values;
-                const usersData = usersResponse.data.$values;
-
-                const updatedPeople = peopleData.map(person => {
-                    const user = usersData.find(u => u.personId === person.id);
-                    const role = user ? user.role : 'Employee';
-
-                    const divisionManager = peopleData.find(p => p.userId === person.divisionManagerId);
-                    const talentManager = peopleData.find(p => p.userId === person.talentManagerId);
-
-                    const divisionManagerName = divisionManager ? `${divisionManager.firstName} ${divisionManager.lastName}` : '';
-                    const talentManagerName = talentManager ? `${talentManager.firstName} ${talentManager.lastName}` : '';
-
-                    return {
-                        ...person,
-                        role,
-                        divisionManagerName,
-                        talentManagerName,
-                    };
-                });
-
-                setPeople(updatedPeople);
-                console.log('Updated people:', updatedPeople);
-            })
-            .catch(error => {
-                console.error('There was an error fetching people or users!', error);
-            });
+    const handleDeleteClick = (personId) => {
+        setDeletingPersonId(personId);
+        setOpenDeleteDialog(true);
     };
 
-    if (userRole !== 'Head' && userRole !== 'DeputyHead' && userRole !== 'DivisionManager') {
-        return <div>Access Denied</div>;
-    }
+    const handleDismiss = async () => {
+        if (!deletingPersonId || !dismissDate) {
+            return;
+        }
+
+        const dismissPayload = {
+            endDate: dismissDate,
+        };
+
+        try {
+            await apiWithAuth.put(`administration/${deletingPersonId}/dismiss`, dismissPayload);
+            setOpenDismissDialog(false);
+            setDismissDate('');
+            setDeletingPersonId(null);
+            await fetchPeople();
+        } catch (error) {
+            console.error('Error during the dismissal process:', error);
+            throw error;
+        }
+    };
 
     const handleTechStackChange = (event) => {
-        // Получаем выбранные значения из события
         const {
             target: { value },
         } = event;
-        // Необходимо проверить, является ли полученное значение массивом
-        const techStackArray = typeof value === 'string' ? value.split(',') : value;
-        setFormData({ ...formData, techStack: techStackArray });
+        const techStackArray = typeof value === 'string'
+            ? value.split(',').map((item) => item.trim()).filter(Boolean)
+            : value;
+        setFormData((prev) => ({ ...prev, techStack: techStackArray }));
     };
 
-    // Функция для изменения состояния новой записи
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+
+        if (name.toLowerCase().endsWith('id')) {
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value === '' ? '' : Number(value),
+            }));
+            return;
+        }
+
+        if (name === 'assignmentExistsInGCP') {
+            setFormData((prev) => ({
+                ...prev,
+                assignmentExistsInGCP: value === 'Yes' || value === true,
+            }));
+            return;
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
         }));
     };
 
+    const resetForm = () => {
+        setFormData(buildEmptyFormState(initialState));
+    };
+
     const saveNewPerson = async () => {
-        const dataToSend = {
-            FirstName: formData.firstName,
-            LastName: formData.lastName,
-            Location: formData.location,
-            DivisionManagerId: formData.divisionManagerId,
-            TalentManagerId: formData.talentManagerId ? parseInt(formData.talentManagerId, 10) : null,
-            AvailableFrom: formData.availableFrom,
-            TechStack: formData.techStack.join(', '),
-            Comments: formData.comments,
-            Stream: formData.stream,
-            TMAware: 'Yes',
-            Level: formData.level,
-            UserId: formData.userId,
-            ProjectIds: 1,
-            AssignmentExistsInGCP: formData.assignmentExistsInGCP === 'Yes' || formData.assignmentExistsInGCP === true
+        const divisionManagerId = formData.divisionManagerId ? Number(formData.divisionManagerId) : null;
+        const talentManagerId = formData.talentManagerId ? Number(formData.talentManagerId) : null;
+
+        const payload = {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            location: formData.location,
+            divisionManagerId,
+            talentManagerId,
+            availableFrom: formData.availableFrom,
+            techStack: Array.isArray(formData.techStack) ? formData.techStack.join(', ') : formData.techStack,
+            comments: formData.comments ?? '',
+            stream: formData.stream,
+            tMAware: formData.tMAware ?? 'Yes',
+            level: formData.level,
+            userId: formData.userId,
+            plannedAssignment: formData.plannedAssignment ?? '',
+            assignmentExistsInGCP: Boolean(formData.assignmentExistsInGCP),
         };
+
         try {
-            await apiWithAuth.post('people', dataToSend);
-            // Обработка успешного сохранения
-            fetchPeople(); // Перезагрузить данные
-            setIsCreatingNewPerson(false); // Сбросить состояние создания новой записи
-            // Сбросить форму
-            setFormData({ // Сбросить форму после сохранения
-                firstName: '',
-                lastName: '',
-                location: '',
-                divisionManagerId: null,
-                talentManagerId: null,
-                availableFrom: '',
-                techStack: [],
-                stream: '',
-                level: '',
-                role: ''
-            });
+            await apiWithAuth.post('administration', payload);
+            await fetchPeople();
+            setIsCreatingNewPerson(false);
+            resetForm();
         } catch (error) {
             console.error('Ошибка при сохранении новой записи', error);
-            // Обработка ошибки
+            throw error;
         }
     };
 
-    // отмена создания новой записи
     const cancelCreatingNewPerson = () => {
         setIsCreatingNewPerson(false);
+        resetForm();
     };
 
     const handlePersonChange = (field, id, event) => {
-        const updatedPeople = people.map((person) => {
-            if (person.id === id) {
-                return { ...person, [field]: event.target.value };
-            }
-            return person;
-        });
-        setPeople(updatedPeople);
+        const newValue = event.target.value;
+
+        setPeople((prev) => prev.map((person) => (
+            person.id === id
+                ? { ...person, [field]: newValue }
+                : person
+        )));
 
         if (id === editablePersonId) {
-            setFormData(prevFormData => ({
-                ...prevFormData,
-                [field]: event.target.value
+            setFormData((prev) => ({
+                ...prev,
+                [field]: field.toLowerCase().includes('id')
+                    ? (newValue === '' ? '' : Number(newValue))
+                    : newValue,
             }));
         }
     };
+
     const handleSaveChanges = async (personId) => {
-        const dataToSend = {
-            Id: personId,
-            FirstName: formData.firstName,
-            LastName: formData.lastName,
-            Location: formData.location,
-            DivisionManagerId: parseInt(formData.divisionManagerId, 10),
-            TalentManagerId: formData.talentManagerId ? parseInt(formData.talentManagerId, 10) : null,
-            AvailableFrom: formData.availableFrom,
-            TechStack: Array.isArray(formData.techStack) ? formData.techStack.join(', ') : formData.techStack,
-            Comments: formData.comments,
-            Stream: formData.stream,
-            TMAware: 'Yes',
-            Level: formData.level,
-            UserId: formData.userId,
-            ProjectIds: Array.isArray(formData.plannedAssignment) ? formData.plannedAssignment.join(', ') : formData.plannedAssignment,
-            AssignmentExistsInGCP: formData.assignmentExistsInGCP
+        const payload = {
+            id: personId,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            location: formData.location,
+            divisionManagerId: formData.divisionManagerId ? Number(formData.divisionManagerId) : null,
+            talentManagerId: formData.talentManagerId ? Number(formData.talentManagerId) : null,
+            availableFrom: formData.availableFrom,
+            techStack: Array.isArray(formData.techStack) ? formData.techStack.join(', ') : formData.techStack,
+            comments: formData.comments,
+            stream: formData.stream,
+            tMAware: formData.tMAware ?? 'Yes',
+            level: formData.level,
+            userId: formData.userId,
+            plannedAssignment: formData.plannedAssignment ?? '',
+            assignmentExistsInGCP: Boolean(formData.assignmentExistsInGCP),
         };
 
         try {
-            await apiWithAuth.put(`people/${personId}`, dataToSend);
+            await apiWithAuth.put(`administration/${personId}`, payload);
             setEditablePersonId(null);
             await fetchPeople();
-            console.log('Person updated successfully');
-            setFormData({ /* начальные значения или пустые строки */ });
+            resetForm();
         } catch (error) {
             console.error('Error updating person:', error);
+            throw error;
         }
-    };
-
-    const handleDeleteClick = async (personId) => {
-        await apiWithAuth.delete(`people/${personId}`);
-        fetchPeople();
     };
 
     const toggleEdit = (personId) => {
-        const person = people.find(p => p.id === personId);
-        if (person) {
-            setFormData({
-                ...person,
-                techStack: person.techStack.split(', '),
-                tmAware: 'Yes',
-                plannedAssignment: [],
-                assignmentExistsInGCP: false
-            });
+        if (editablePersonId === personId) {
+            setEditablePersonId(null);
+            resetForm();
+            return;
         }
-        setEditablePersonId(prev => prev === personId ? null : personId);
+
+        const person = people.find((p) => p.id === personId);
+        if (!person) {
+            return;
+        }
+
+        setEditablePersonId(personId);
+        setFormData({
+            ...person,
+            techStack: typeof person.techStack === 'string' && person.techStack.length > 0
+                ? person.techStack.split(',').map((item) => item.trim()).filter(Boolean)
+                : [],
+            tMAware: person.tMAware ?? 'Yes',
+            plannedAssignment: person.plannedAssignment ?? '',
+            assignmentExistsInGCP: Boolean(person.assignmentExistsInGCP),
+        });
     };
+
+    const tabIndexMap = {
+        CreateManager: 0,
+        People: 1,
+        SalaryReviewTab: 2,
+        SalaryStatistics: 3,
+        SalaryPlanningComponent: 4,
+        SalaryReviewsHistory: 5,
+        CSVReader: 6,
+        FileUpload: 7,
+        FileUploader: 8,
+    };
+
+    const tabIndexMapReverse = Object.keys(tabIndexMap).reduce((acc, key) => {
+        const index = tabIndexMap[key];
+        acc[index] = key;
+        return acc;
+    }, {});
+
+    const isPersonActive = useCallback((person) => {
+        if (!person) {
+            return false;
+        }
+
+        if (person.isDismissed) {
+            return false;
+        }
+
+        if (person.endDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const endDate = new Date(person.endDate);
+            endDate.setHours(0, 0, 0, 0);
+            if (endDate < today) {
+                return false;
+            }
+        }
+
+        return true;
+    }, []);
+
+    const displayedPeople = useMemo(() => {
+        if (!showActiveOnlyPeople) {
+            return people;
+        }
+
+        return people.filter((person) => isPersonActive(person));
+    }, [isPersonActive, people, showActiveOnlyPeople]);
+
+    if (!hasAccess) {
+        return <div>Access Denied</div>;
+    }
 
     return (
         <AdjustmentSettingsProvider>
             <Container maxWidth="false" sx={{ overflowX: 'auto', mt: 4, mb: 4 }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} aria-label="admin tabs">
-                        <Tab value="CreateManager" label="Create Manager" />
-                        <Tab value="People" label="People" />
-                        <Tab value="SalaryReviewTab" label="Salary Reviews" />
-                        <Tab value="SalaryStatistics" label="Statistics" />
-                        <Tab value="SalaryPlanningComponent" label="Salary Planning" />
-                        <Tab value="SalaryReviewsHistory" label="Salary Reviews History" />
-                        <Tab value="CSVReader" label="Salary Ranges" />
-                        <Tab value="FileUpload" label="Upload Data" />
-                        <Tab value="FileUploader" label="Upload Playground" />
-                    </Tabs>
+                    <TabsTwitter
+                        value={tabIndexMap[activeTab]}
+                        onChange={(event, newIndex) => setActiveTab(tabIndexMapReverse[newIndex])}
+                    />
                 </Box>
                 {activeTab === 'CreateManager' && (
                     <Box sx={{ p: 3 }}>
@@ -237,11 +337,31 @@ const AdminPanel = (initialState) => {
                 )}
                 {activeTab === 'People' && (
                     <Box sx={{ p: 3 }}>
-                        <Button variant="contained" color="primary" onClick={() => setIsCreatingNewPerson(true)} sx={{ mb: 2 }}>
-                            Add New Person
-                        </Button>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                    setIsCreatingNewPerson(true);
+                                    resetForm();
+                                }}
+                                sx={{ width: { xs: '100%', sm: 'auto' } }}
+                            >
+                                Add New Person
+                            </Button>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={showActiveOnlyPeople}
+                                        onChange={(event) => setShowActiveOnlyPeople(event.target.checked)}
+                                        color="primary"
+                                    />
+                                }
+                                label="Show active employees only"
+                            />
+                        </Stack>
                         <EditableTable
-                            people={people}
+                            people={displayedPeople}
                             editablePersonId={editablePersonId}
                             setEditablePersonId={setEditablePersonId}
                             handlePersonChange={handlePersonChange}
@@ -258,6 +378,15 @@ const AdminPanel = (initialState) => {
                             cancelCreatingNewPerson={cancelCreatingNewPerson}
                             handleTechStackChange={handleTechStackChange}
                             setPeople={setPeople}
+                            deletingPersonId={deletingPersonId}
+                            openDeleteDialog={openDeleteDialog}
+                            dismissDate={dismissDate}
+                            openDismissDialog={openDismissDialog}
+                            setDeletingPersonId={setDeletingPersonId}
+                            setOpenDeleteDialog={setOpenDeleteDialog}
+                            setDismissDate={setDismissDate}
+                            setOpenDismissDialog={setOpenDismissDialog}
+                            handleDismiss={handleDismiss}
                         />
                     </Box>
                 )}
@@ -270,10 +399,10 @@ const AdminPanel = (initialState) => {
                     <Box sx={{ p: 3 }}>
                         <SalaryStatistics />
                     </Box>
-                )}   
+                )}
                 {activeTab === 'SalaryPlanningComponent' && (
                     <Box sx={{ p: 3 }}>
-                        <SalaryPlanningComponent />
+                        <SalaryPlanningComponentTest />
                     </Box>
                 )}
                 {activeTab === 'SalaryReviewsHistory' && (

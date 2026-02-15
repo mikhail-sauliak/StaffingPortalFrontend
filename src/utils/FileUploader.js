@@ -81,11 +81,9 @@ const FileUploader = () => {
         setActiveColumns(newActiveColumns.sort());
     };
 
-    const handleSendData = async () => {
-        // первая строка содержит заголовки, а данные начинаются со второй строки
-        const dataToSend = rows.slice(1).map(row => processDataForRow(row));
-        
-        // каждый объект в API
+    const handleSendData = async () => {        
+        const dataToSend = rows.slice(1).map(row => processDataForRow(row));       
+       
         for (const data of dataToSend) {
           try {
             await apiWithAuth.post('people', data);

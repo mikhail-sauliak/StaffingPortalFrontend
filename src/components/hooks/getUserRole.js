@@ -1,10 +1,10 @@
-import { jwtDecode } from 'jwt-decode';
+import { decodeTokenClaims } from '../../utils/token';
 
 const getUserRoleFromToken = () => {
     const token = localStorage.getItem('token');
     if (token) {
-        const decodedToken = jwtDecode(token);
-        return decodedToken['role'];
+        const claims = decodeTokenClaims(token);
+        return claims?.role ?? null;
     }
     return null;
 };

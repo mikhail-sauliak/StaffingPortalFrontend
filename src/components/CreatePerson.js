@@ -16,7 +16,8 @@ const CreatePerson = ({ onPersonCreated }) => {
         handleSubmit,
         handleInputChange,
         handleSelectChange,
-        handleTechStackChange
+        handleTechStackChange,
+        peopleOptions
       } = usePersonForm(
     {
         firstName: '',
@@ -32,6 +33,28 @@ const CreatePerson = ({ onPersonCreated }) => {
         tmAware: 'Not',
         level: 'Intern', 
         assignmentExistsInGCP: false,
+        createUser: false,
+        userUsername: '',
+        userPassword: '',
+        userRole: 'TalentManager',
+        userStream: 'QA',
+        userManagerPersonId: null,
+        createSalaryReview: false,
+        salaryReviewReviewDate: '',
+        salaryReviewOldSalary: '',
+        salaryReviewProposedSalary: '',
+        salaryReviewCurrency: 'USD',
+        salaryReviewContractType: 'Permanent',
+        salaryReviewNewSalaryStartDate: '',
+        salaryReviewSalaryReceivedDate: '',
+        salaryReviewJustification: '',
+        salaryReviewDivisionManagerComments: '',
+        salaryReviewTalentManagerComments: '',
+        salaryReviewReviewResult: 'Approved',
+        salaryReviewIsApproved: true,
+        salaryReviewApprovedByDivisionManager: true,
+        talentManagerAssignments: [],
+        divisionManagerAssignments: []
       },
       null, () => {
         onPersonCreated();
@@ -68,6 +91,7 @@ const CreatePerson = ({ onPersonCreated }) => {
         handleSelectChange={handleSelectChange}
         handleTechStackChange={handleTechStackChange}
         projects={projects}
+        peopleOptions={peopleOptions}
       />
     </>
   );

@@ -3,9 +3,8 @@ import { useState, useEffect, useMemo } from 'react';
 import EmailProposalComponent from '../SalaryReview/EmailProposalComponent';
 import { useFetchPeople, useFetchReviews, useFetchSalaryRanges, useMergePeopleAndReviews, useCalculateAdjustments } from '../hooks/useSalaryReviewData';
 import { formatDataForEmailTable } from '../../utils/dataEmailutils';
-import ProposalTable from '../SalaryReview/ProposalTable';
+import ProposalTable from '../SalaryReview/ProposalTableGrid';
 import MainTable from '../SalaryReview/MainTable';
-import SalaryReviewBulkModal from '../SalaryReview/SalaryReviewBulkModal';
 import { getLastSRTimerange } from '../../utils/dateUtils';
 import AdjustmentSlider from '../SalaryReview/AdjustmentSlider';
 import {
@@ -54,7 +53,7 @@ const SalaryReviewTab = () => {
         PLN: [500, 1000],
         USD: [300, 500],
         EUR: [300, 500],
-        // ... other currencies
+        // other currencies
     });
 
     const reviews = useFetchReviews();
@@ -100,7 +99,6 @@ const SalaryReviewTab = () => {
             const response = await apiWithAuth.patch(`/salaryreview/${editingReviewId}`, formData);
 
             if (response.status === 204) {
-                // reviews;
                 setSnackbarMessage('Review saved successfully');
                 setSnackbarOpen(true);
                 setEditingReviewId(null);
@@ -200,19 +198,17 @@ const SalaryReviewTab = () => {
 
     const sortedAndFilteredItems = useMemo(() => {
         const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1); // Устанавливаем дату на один год назад от текущего момента
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
         let sortableItems = [...salaryProposals]
             .filter(proposal => {
-                // Фильтрация по overflow и потоку (stream)
                 const overflowCondition = !removeOverflowed || proposal.overflow == null;
                 const streamCondition = selectedStream === 'All' || proposal.stream === selectedStream;
 
-                // Фильтрация для отображения только "Actual" пересмотров зарплаты (год и старше)
                 let actualCondition = true;
                 if (isActualOnly && proposal.lastReviewDate) {
                     const lastReviewDate = new Date(proposal.lastReviewDate);
-                    actualCondition = lastReviewDate <= oneYearAgo; // Проверяем, был ли пересмотр более года назад
+                    actualCondition = lastReviewDate <= oneYearAgo;
                 }
 
                 return (proposal.adjustment !== 0 || proposal.overflow != null) && overflowCondition && streamCondition && actualCondition;
@@ -245,6 +241,11 @@ const SalaryReviewTab = () => {
         setIsActualOnly(event.target.checked);
     };
 
+    const handleSelectionChange = (newSelectionModel) => {
+        console.log(newSelectionModel); 
+        setSelectedProposals(newSelectionModel); 
+      };
+
     const handleSelectProposal = (proposalId) => {
         setSelectedProposals(prevSelected => {
             const isSelected = prevSelected.includes(proposalId);
@@ -257,12 +258,14 @@ const SalaryReviewTab = () => {
     };
 
     const handleCreateEmail = () => {
-        // Фильтрация только выбранных предложений
+        if (!Array.isArray(selectedProposals)) {
+            console.error("selectedProposals is not an array", selectedProposals);
+            return;
+        }
         const selectedProposalsData = salaryProposals.filter(proposal =>
             selectedProposals.includes(proposal.id)
         );
 
-        // Передаем отфильтрованные данные в formatDataForEmailTable
         const emailData = formatDataForEmailTable(selectedProposalsData, people, reviews);
 
         setFormattedDataForEmail(emailData);
@@ -280,8 +283,8 @@ const SalaryReviewTab = () => {
     const getHighlightClass = (startDate) => {
         const now = new Date();
         const start = new Date(startDate);
-        const oneYear = 365 * 24 * 60 * 60 * 1000; // миллисекунды в одном году
-        const oneYearAndThreeMonths = oneYear + 90 * 24 * 60 * 60 * 1000; // плюс три месяца
+        const oneYear = 365 * 24 * 60 * 60 * 1000;
+        const oneYearAndThreeMonths = oneYear + 90 * 24 * 60 * 60 * 1000;
 
         const diff = now - start;
 
@@ -309,7 +312,6 @@ const SalaryReviewTab = () => {
         <Box sx={{ flexGrow: 1, overflowX: 'auto', mb: 2 }}>
             <Grid container spacing={2} justifyContent="flex-start" alignItems="flex-start">
 
-                {/* Блок для Adjustment Settings */}
                 <Grid item xs={12} md={3}>
                     <Paper elevation={3} sx={{ p: 1 }}>
                         {Object.entries(adjustmentSettings).map(([currency, range]) => (
@@ -323,24 +325,19 @@ const SalaryReviewTab = () => {
                     </Paper>
                 </Grid>
 
-                {/* Блок для кнопок */}
-                {/* Блок для кнопок и элементов управления */}
                 <Grid item xs={12} md={2} container spacing={2} direction="column">
-                    {/* Кнопка "Calculate Proposals" */}
                     <Grid item>
                         <Button variant="contained" color="secondary" onClick={handleProposeSalaryReviews} fullWidth>
                             Calculate Proposals
                         </Button>
                     </Grid>
 
-                    {/* Кнопка "Open Proposals Table" */}
                     <Grid item>
                         <Button variant="contained" color="primary" onClick={toggleAccordion} fullWidth>
                             Open Proposals Table
                         </Button>
                     </Grid>
 
-                    {/* Кнопка "Create Review Email" */}
                     <Grid item>
                         <Button variant="contained" color="primary" onClick={handleCreateEmail} fullWidth>
                             Create Review Email
@@ -352,7 +349,6 @@ const SalaryReviewTab = () => {
                         </Button>
                     </Grid>
 
-                    {/* Чекбокс "Remove overflowed" */}
                     <Grid item>
                         <FormControlLabel
                             control={
@@ -366,7 +362,6 @@ const SalaryReviewTab = () => {
                         />
                     </Grid>
 
-                    {/* Выпадающий список "Stream" */}
                     <Grid item>
                         <FormControl fullWidth>
                             <InputLabel id="role-select-label">Stream</InputLabel>
@@ -384,7 +379,6 @@ const SalaryReviewTab = () => {
                         </FormControl>
                     </Grid>
 
-                    {/* Чекбокс "Actual" */}
                     <Grid item>
                         <FormControlLabel
                             control={
@@ -399,37 +393,26 @@ const SalaryReviewTab = () => {
                     </Grid>
                 </Grid>
 
-                {/* Отдельная колонка для кнопки "Create New Review" */}
                 <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Button variant="contained" color="primary" onClick={handleCreateNew}>
                         Create New Review
                     </Button>
                 </Grid>
             </Grid>
-            <SalaryReviewBulkModal
-                show={showBulkModal}
-                onHide={() => setShowBulkModal(false)}
-                selectedEmployees={selectedProposals.map(id => mergedData.find(data => data.id === id))}
-                onSubmit={(data) => {
-                    // You can handle the bulk send logic or API calls here or pass this function down from another component
-                    console.log(data); // For now, just logging the data
-                    setShowBulkModal(false); // Close modal after submission
-                    // Update your state as needed here (e.g., refresh data)
-                }}
-            /> 
 
-            {/* Средний ряд для Accordion Proposal Table */}
             <Grid item xs={12}>
-                <ProposalTable
-                    isAccordionOpen={isAccordionOpen}
-                    sortedAndFilteredItems={sortedAndFilteredItems}
-                    handleSelectProposal={handleSelectProposal}
-                    requestSort={requestSort}
-                    getLastSRTimerange={getLastSRTimerange}
-                />
+            <ProposalTable
+                isAccordionOpen={isAccordionOpen}
+                sortedAndFilteredItems={sortedAndFilteredItems}
+                onSelectionModelChange={(newSelectionModel) => {
+                    console.log("Selection changed:", newSelectionModel);
+                    setSelectedProposals(newSelectionModel);
+                }}
+                getLastSRTimerange={getLastSRTimerange}
+                selectionModel={selectedProposals}
+            />
             </Grid>
 
-            {/* Нижний ряд для Main Table */}
             <Grid item xs={12}>
                 <EmailProposalComponent
                     proposals={formattedDataForEmail}

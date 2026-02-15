@@ -1,0 +1,65 @@
+{
+    "PLN": {
+      "EC": {
+        "Junior-": {"QA_min": 4000, "QA_max": 5500, "SDET_min": 4500, "SDET_max": 6000},
+        "Junior": {"QA_min": 5500, "QA_max": 6500, "SDET_min": 6000, "SDET_max": 7000},
+        "Junior+": {"QA_min": 6500, "QA_max": 7500, "SDET_min": 7000, "SDET_max": 8500},
+        "Middle-": {"QA_min": 7500, "QA_max": 9000, "SDET_min": 8500, "SDET_max": 10500},
+        "Middle": {"QA_min": 9000, "QA_max": 10500, "SDET_min": 10500, "SDET_max": 13000},
+        "Middle+": {"QA_min": 10500, "QA_max": 12000, "SDET_min": 13000, "SDET_max": 14500},
+        "Senior-": {"QA_min": 12000, "QA_max": 13000, "SDET_min": 14500, "SDET_max": 16000},
+        "Senior": {"QA_min": 13000, "QA_max": 14000, "SDET_min": 16000, "SDET_max": 17500},
+        "Senior+": {"QA_min": 14000, "QA_max": 15500, "SDET_min": 17500, "SDET_max": 19000},
+        "Lead-": {"QA_min": 15500, "QA_max": 16000, "SDET_min": 19000, "SDET_max": 20000},
+        "Lead": {"QA_min": 16000, "QA_max": 17000, "SDET_min": 20000, "SDET_max": 21000},
+        "Lead+": {"QA_min": 17000, "QA_max": 18500, "SDET_min": 21000, "SDET_max": 22000}
+      },
+      "B2B": {
+        "Junior-": {"QA_min": 4500, "QA_max": 6000, "SDET_min": 5500, "SDET_max": 7000},
+        "Junior": {"QA_min": 6500, "QA_max": 7500, "SDET_min": 7000, "SDET_max": 8000},
+        "Junior+": {"QA_min": 7500, "QA_max": 8500, "SDET_min": 8000, "SDET_max": 9500},
+        "Middle-": {"QA_min": 8500, "QA_max": 10000, "SDET_min": 9500, "SDET_max": 11500},
+        "Middle": {"QA_min": 10000, "QA_max": 11500, "SDET_min": 11500, "SDET_max": 14000},
+        "Middle+": {"QA_min": 11500, "QA_max": 13000, "SDET_min": 14000, "SDET_max": 15500},
+        "Senior-": {"QA_min": 13000, "QA_max": 14000, "SDET_min": 15500, "SDET_max": 17000},
+        "Senior": {"QA_min": 14000, "QA_max": 15000, "SDET_min": 17000, "SDET_max": 18500},
+        "Senior+": {"QA_min": 15000, "QA_max": 16500, "SDET_min": 18500, "SDET_max": 20000},
+        "Lead-": {"QA_min": 16500, "QA_max": 17000, "SDET_min": 20000, "SDET_max": 21000},
+        "Lead": {"QA_min": 17000, "QA_max": 18000, "SDET_min": 21000, "SDET_max": 22000},
+        "Lead+": {"QA_min": 18000, "QA_max": 19500, "SDET_min": 22000, "SDET_max": 23000}
+      }
+    },
+    "EUR": {
+        "EC": {
+          "Junior-": {"QA_min": 1000, "QA_max": 1100, "SDET_min": 1000, "SDET_max": 1100},
+          "Junior": {"QA_min": 1100, "QA_max": 1300, "SDET_min": 1100, "SDET_max": 1300},
+          "Junior+": {"QA_min": 1300, "QA_max": 1450, "SDET_min": 1300, "SDET_max": 1450},
+          "Middle-": {"QA_min": 1450, "QA_max": 2000, "SDET_min": 1450, "SDET_max": 2100},
+          "Middle": {"QA_min": 2000, "QA_max": 2500, "SDET_min": 2100, "SDET_max": 2750},
+          "Middle+": {"QA_min": 2500, "QA_max": 3050, "SDET_min": 2750, "SDET_max": 3350},
+          "Senior-": {"QA_min": 3050, "QA_max": 3250, "SDET_min": 3350, "SDET_max": 3700},
+          "Senior": {"QA_min": 3250, "QA_max": 3450, "SDET_min": 3700, "SDET_max": 4050},
+          "Senior+": {"QA_min": 3450, "QA_max": 3650, "SDET_min": 4050, "SDET_max": 4350},
+          "Lead-": {"QA_min": 3650, "QA_max": 3850, "SDET_min": 4350, "SDET_max": 4550},
+          "Lead": {"QA_min": 3850, "QA_max": 4050, "SDET_min": 4550, "SDET_max": 4750},
+          "Lead+": {"QA_min": 4050, "QA_max": 4200, "SDET_min": 4750, "SDET_max": 4950}
+        }
+      },
+      "USD": {
+        "EC": {
+          "Junior-": {"QA_min": 300, "QA_max": 500, "SDET_min": 300, "SDET_max": 500},
+          "Junior": {"QA_min": 500, "QA_max": 750, "SDET_min": 500, "SDET_max": 750},
+          "Junior+": {"QA_min": 750, "QA_max": 1000, "SDET_min": 750, "SDET_max": 1000},
+          "Middle-": {"QA_min": 1000, "QA_max": 1400, "SDET_min": 1000, "SDET_max": 1450},
+          "Middle": {"QA_min": 1400, "QA_max": 1700, "SDET_min": 1450, "SDET_max": 1900},
+          "Middle+": {"QA_min": 1700, "QA_max": 2100, "SDET_min": 1900, "SDET_max": 2300},
+          "Senior-": {"QA_min": 2100, "QA_max": 2250, "SDET_min": 2300, "SDET_max": 2550},
+          "Senior": {"QA_min": 2250, "QA_max": 2350, "SDET_min": 2550, "SDET_max": 2800},
+          "Senior+": {"QA_min": 2350, "QA_max": 2500, "SDET_min": 2800, "SDET_max": 3000},
+          "Lead-": {"QA_min": 2500, "QA_max": 2850, "SDET_min": 3000, "SDET_max": 3500},
+          "Lead": {"QA_min": 2850, "QA_max": 3200, "SDET_min": 3500, "SDET_max": 4000},
+          "Lead+": {"QA_min": 3200, "QA_max": 3600, "SDET_min": 4000, "SDET_max": 4500}
+        }
+      }
+  }
+  

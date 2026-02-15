@@ -65,11 +65,11 @@ export const useCalculateAdjustments = (mergedData, salaryRanges, adjustmentSett
         const contractType = review.contractType;
 
 
-        console.log(`Processing: ${item.firstName} ${item.lastName}, Stream: ${stream}, Level: ${level}, Current Salary: ${currentSalary}, Currency: ${currency}`);
+        // console.log(`Processing: ${item.firstName} ${item.lastName}, Stream: ${stream}, Level: ${level}, Current Salary: ${currentSalary}, Currency: ${currency}`);
 
         const salaryRange = salaryRanges[currency]?.[contractType]?.[level];
         if (!salaryRange) {
-            console.log(`No salary range found for ${currency}-${contractType}-${stream}-${level}, skipping adjustment.`);
+            // console.log(`No salary range found for ${currency}-${contractType}-${stream}-${level}, skipping adjustment.`);
             return { ...item, adjustment: 0, proposedNewSalary: currentSalary, overflow: null };
         }
 
@@ -87,15 +87,15 @@ export const useCalculateAdjustments = (mergedData, salaryRanges, adjustmentSett
         } else if (currentSalary >= minSalary && currentSalary < maxSalary) {
             adjustment = maxSalary - currentSalary < minAdjustment ? maxSalary - currentSalary : minAdjustment;
             if (currentSalary + adjustment > maxSalary) {
-                adjustment = maxSalary - currentSalary; // Ensure not exceeding max salary
+                adjustment = maxSalary - currentSalary; // not exceeding max salary
             }
             proposedNewSalary += adjustment;
         } else if (currentSalary >= maxSalary) {
             overflow = currentSalary - maxSalary;            
-            adjustment = 0; // No adjustment since it's already above the max
+            adjustment = 0; // no adjustment since it's already above the max
         }
 
-        // Ensure adjustment does not exceed the adjustmentSettings range
+        // adjustment does not exceed the adjustmentSettings range
         if (adjustment < minAdjustment && currentSalary + minAdjustment <= maxSalary) {
             adjustment = minAdjustment;
             proposedNewSalary = currentSalary + adjustment;
@@ -106,7 +106,7 @@ export const useCalculateAdjustments = (mergedData, salaryRanges, adjustmentSett
         }
 
         if (proposedNewSalary > maxSalary) {
-            overflow = proposedNewSalary - maxSalary; // Ensure overflow is negative
+            overflow = proposedNewSalary - maxSalary; // overflow is negative
             proposedNewSalary = currentSalary;
         }
 
